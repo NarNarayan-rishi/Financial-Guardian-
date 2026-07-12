@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Guardian | Veteran AI Accountant</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Audio Context & Welcome Overlay -->
+    <div id="welcomeOverlay" class="overlay">
+        <div class="modal glass-panel">
+            <h2>Welcome Back</h2>
+            <p>Click below to open your dashboard and check for pending payments.</p>
+            <button id="btnEnterApp" class="btn-primary">Enter Dashboard</button>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div id="notificationModal" class="overlay" style="display: none;">
+        <div class="modal glass-panel" id="notificationContent">
+            <!-- Dynamically populated via JS -->
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="glass-panel main-header">
+            <div class="logo">
+                <h1>Financial Guardian</h1>
+                <p class="subtitle">Veteran Insight for Modern Business</p>
+            </div>
+            
+            <div class="controls">
+                <div class="setting-group">
+                    <label for="currencyInput">Currency (e.g., USD)</label>
+                    <input type="text" id="currencyInput" placeholder="USD" maxlength="3" value="USD" style="text-transform: uppercase;">
+                </div>
+                
+                <div class="setting-group font-controls">
+                    <span class="label">Text Size</span>
+                    <button id="decreaseFont" class="btn-icon" aria-label="Decrease Font Size">A-</button>
+                    <button id="increaseFont" class="btn-icon" aria-label="Increase Font Size">A+</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <main class="dashboard-grid">
+            
+            <!-- Summary Cards -->
+            <section class="summary-section">
+                <div class="summary-card glass-panel revenue-card">
+                    <h3>Total Revenue</h3>
+                    <h2 id="totalRevenueDisplay" class="amount positive">0.00</h2>
+                </div>
+                <div class="summary-card glass-panel expense-card">
+                    <h3>Total Expenses</h3>
+                    <h2 id="totalExpenseDisplay" class="amount negative">0.00</h2>
+                </div>
+                <div class="summary-card glass-panel net-card">
+                    <h3>Net Balance</h3>
+                    <h2 id="netBalanceDisplay" class="amount neutral">0.00</h2>
+                </div>
+            </section>
+
+            <!-- Middle Row: Input Form & Veteran Advice -->
+            <div class="middle-row">
+                <!-- Input Form -->
+                <section class="input-section glass-panel">
+                    <h2>Record Transaction</h2>
+                    <form id="transactionForm">
+                        <div class="form-group">
+                            <label for="transDate">Date</label>
+                            <input type="date" id="transDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="transType">Type</label>
+                            <select id="transType" required onchange="toggleExpectedDate()">
+                                <option value="revenue">Revenue / Savings</option>
+                                <option value="expense">Expense</option>
+                                <option value="pending">Payment yet to be received</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="expectedDateGroup" style="display: none;">
+                            <label for="expectedDate">Expected Date of Payment</label>
+                            <input type="date" id="expectedDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="transAmount">Amount</label>
+                            <input type="number" id="transAmount" min="0.01" step="0.01" required placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="transDesc">Description (Optional)</label>
+                            <input type="text" id="transDesc" placeholder="e.g., Office Supplies" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Add Record</button>
+                    </form>
+                </section>
+
+                <!-- Accountant's Advice (AI Advice) -->
+                <section class="advisor-section glass-panel">
+                    <div class="advisor-header">
+                        <div class="avatar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        </div>
+                        <h2>Accountant's Advice</h2>
+                    </div>
+                    <div class="advisor-content" id="advisorContent">
+                        <p>I've seen the markets rise and fall for 20 years. Enter your financial data, and I'll give you a straight assessment of where your business stands.</p>
+                    </div>
+                    
+                    <details class="insights-details">
+                        <summary>How general businesses lose money</summary>
+                        <div class="insights-content">
+                            <ul>
+                                <li><strong>Poor Cash Flow Management:</strong> Waiting too long for receivables while payables are due.</li>
+                                <li><strong>Over-expansion:</strong> Expanding operations or hiring too quickly before revenue supports it.</li>
+                                <li><strong>Pricing Issues:</strong> Underpricing products to gain market share but destroying margins.</li>
+                                <li><strong>Ignoring Small Expenses:</strong> Death by a thousand cuts—subscriptions and minor fees add up.</li>
+                                <li><strong>Lack of Emergency Fund:</strong> No buffer for economic downturns or supply chain shocks.</li>
+                            </ul>
+                        </div>
+                    </details>
+                </section>
+            </div>
+
+            <!-- Bottom Row: Chart & History -->
+            <div class="bottom-row">
+                <!-- Chart Section -->
+                <section class="chart-section glass-panel">
+                    <h2>Financial Trend</h2>
+                    <div class="chart-container">
+                        <canvas id="financialChart"></canvas>
+                    </div>
+                </section>
+
+                <!-- Transaction History -->
+                <section class="history-section glass-panel">
+                    <details class="transactions-tab" open>
+                        <summary><h2>Your Transactions</h2></summary>
+                        <div class="history-actions">
+                            <a href="transactions.html" target="_blank" class="btn-primary" style="text-align: center; display: block; text-decoration: none; margin-bottom: 1rem;">Open Full Ledger in New Page</a>
+                        </div>
+                        <div class="history-list" id="historyList">
+                            <!-- History items generated via JS -->
+                        </div>
+                        <button id="clearDataBtn" class="btn-danger">Clear All Data</button>
+                    </details>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="shared.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Guardian | Full Ledger</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- html2pdf for clean PDF exports -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        /* Specific overrides for ledger page */
+        .ledger-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            text-align: left;
+        }
+        th, td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--panel-border);
+        }
+        th {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        .status-badge {
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .bg-green { background: rgba(16, 185, 129, 0.2); color: var(--neon-green); }
+        .bg-red { background: rgba(239, 68, 68, 0.2); color: var(--neon-red); }
+        .bg-blue { background: rgba(59, 130, 246, 0.2); color: var(--neon-blue); }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        /* Elements to hide during PDF generation */
+        .no-print { }
+    </style>
+</head>
+<body>
+    <div class="ledger-container" id="printableLedger">
+        <header class="main-header" style="flex-direction: column; align-items: flex-start; margin-bottom: 2rem;">
+            <div class="logo">
+                <h1>Full Transaction Ledger</h1>
+                <p class="subtitle">Complete Financial History</p>
+            </div>
+            
+            <div class="header-actions no-print">
+                <button id="exportCsvBtn" class="btn-icon">Export to Spreadsheet (CSV)</button>
+                <button id="exportPdfBtn" class="btn-icon">Export to PDF (Clean)</button>
+                <a href="index.html" class="btn-icon" style="text-decoration: none;">Back to Dashboard</a>
+            </div>
+        </header>
+        
+        <div class="glass-panel" style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Amount</th>
+                        <th class="no-print">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="ledgerBody">
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="shared.js"></script>
+    <script src="transactions.js"></script>
+</body>
+</html>
