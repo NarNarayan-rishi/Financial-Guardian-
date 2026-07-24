@@ -4,18 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Financial Guardian | Veteran AI Accountant</title>
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Audio Context & Welcome Overlay -->
+    <!-- Welcome Overlay -->
     <div id="welcomeOverlay" class="overlay">
-        <div class="modal glass-panel">
+        <div class="modal glass-panel" style="position: relative;">
+            <button class="modal-close" onclick="this.closest('.overlay').style.display='none'">×</button>
             <h2>Welcome Back</h2>
             <p>Click below to open your dashboard and check for pending payments.</p>
             <button id="btnEnterApp" class="btn-primary">Enter Dashboard</button>
@@ -24,8 +23,45 @@
 
     <!-- Notification Modal -->
     <div id="notificationModal" class="overlay" style="display: none;">
-        <div class="modal glass-panel" id="notificationContent">
-            <!-- Dynamically populated via JS -->
+        <div class="modal glass-panel" id="notificationContent" style="position: relative;"></div>
+    </div>
+
+    <!-- GST Invoice Modal -->
+    <div id="gstModal" class="overlay" style="display: none;">
+        <div class="modal glass-panel gst-modal" id="gstModalContent" style="position: relative;"></div>
+    </div>
+
+    <!-- Calculator Modal -->
+    <div id="calcModal" class="overlay" style="display: none;">
+        <div class="modal glass-panel" style="max-width: 360px; position: relative;">
+            <button class="modal-close" onclick="this.closest('.overlay').style.display='none'">×</button>
+            <h2>Calculator</h2>
+            <input type="text" id="calcDisplay" class="calc-display" readonly>
+            <div class="calc-grid">
+                <button class="calc-btn" onclick="calcInput('7')">7</button>
+                <button class="calc-btn" onclick="calcInput('8')">8</button>
+                <button class="calc-btn" onclick="calcInput('9')">9</button>
+                <button class="calc-btn calc-op" onclick="calcInput('/')">/</button>
+                <button class="calc-btn" onclick="calcInput('4')">4</button>
+                <button class="calc-btn" onclick="calcInput('5')">5</button>
+                <button class="calc-btn" onclick="calcInput('6')">6</button>
+                <button class="calc-btn calc-op" onclick="calcInput('*')">×</button>
+                <button class="calc-btn" onclick="calcInput('1')">1</button>
+                <button class="calc-btn" onclick="calcInput('2')">2</button>
+                <button class="calc-btn" onclick="calcInput('3')">3</button>
+                <button class="calc-btn calc-op" onclick="calcInput('-')">-</button>
+                <button class="calc-btn" onclick="calcInput('0')">0</button>
+                <button class="calc-btn" onclick="calcInput('.')">.</button>
+                <button class="calc-btn" onclick="calcInput('%')">%</button>
+                <button class="calc-btn calc-op" onclick="calcInput('+')">+</button>
+                <button class="calc-btn" onclick="calcInput('(')">(</button>
+                <button class="calc-btn" onclick="calcInput(')')">)</button>
+                <button class="calc-btn calc-clear" onclick="calcClear()">C</button>
+                <button class="calc-btn calc-equals" onclick="calcEval()">=</button>
+            </div>
+            <div class="modal-actions" style="margin-top: 1rem;">
+                <button class="btn-danger" onclick="document.getElementById('calcModal').style.display='none'">Close</button>
+            </div>
         </div>
     </div>
 
@@ -33,13 +69,28 @@
         <!-- Header -->
         <header class="glass-panel main-header">
             <div class="logo">
-                <h1>Financial Guardian</h1>
-                <p class="subtitle">Veteran Insight for Modern Business</p>
+                <div class="logo-icon">
+                    <svg viewBox="0 0 40 40" width="40" height="40" fill="none">
+                        <defs>
+                            <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#3b82f6"/>
+                                <stop offset="100%" stop-color="#10b981"/>
+                            </linearGradient>
+                        </defs>
+                        <rect x="2" y="2" width="36" height="36" rx="10" stroke="url(#logoGrad)" stroke-width="2.5" fill="none"/>
+                        <path d="M12 28 L16 18 L20 22 L26 12" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        <circle cx="28" cy="12" r="2" fill="#10b981"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>Financial Guardian</h1>
+                    <p class="subtitle">Veteran Insight for Modern Business</p>
+                </div>
             </div>
             
             <div class="controls">
                 <div class="setting-group">
-                    <label for="currencyInput">Currency (e.g., USD)</label>
+                    <label for="currencyInput">Currency</label>
                     <input type="text" id="currencyInput" placeholder="USD" maxlength="3" value="USD" style="text-transform: uppercase;">
                 </div>
                 
@@ -70,11 +121,23 @@
                 </div>
             </section>
 
-            <!-- Middle Row: Input Form & Veteran Advice -->
+            <!-- Middle Row -->
             <div class="middle-row">
                 <!-- Input Form -->
                 <section class="input-section glass-panel">
                     <h2>Record Transaction</h2>
+                    
+                    <!-- Presets -->
+                    <div class="presets-section">
+                        <h3>Quick Presets</h3>
+                        <div class="preset-chips" id="presetChips"></div>
+                        <div class="add-preset-row">
+                            <input type="text" id="newPresetInput" placeholder="Preset name">
+                            <input type="number" id="newPresetPrice" placeholder="Price" min="0.01" step="0.01" style="width: 80px;">
+                            <button class="btn-icon" id="addPresetBtn">+ Add</button>
+                        </div>
+                    </div>
+                    
                     <form id="transactionForm">
                         <div class="form-group">
                             <label for="transDate">Date</label>
@@ -92,19 +155,35 @@
                             <label for="expectedDate">Expected Date of Payment</label>
                             <input type="date" id="expectedDate">
                         </div>
-                        <div class="form-group">
-                            <label for="transAmount">Amount</label>
-                            <input type="number" id="transAmount" min="0.01" step="0.01" required placeholder="0.00">
+                        <div class="gst-checkbox-row" id="gstCheckboxRow">
+                            <input type="checkbox" id="generateGstInvoice">
+                            <label for="generateGstInvoice" style="margin: 0; color: var(--text-muted); font-size: 0.85rem;">Generate GST Invoice for this transaction</label>
                         </div>
                         <div class="form-group">
-                            <label for="transDesc">Description (Optional)</label>
-                            <input type="text" id="transDesc" placeholder="e.g., Office Supplies" required>
+                            <label for="transDesc">Description</label>
+                            <div class="desc-wrapper">
+                                <input type="text" id="transDesc" placeholder="e.g., Office Supplies" required autocomplete="off">
+                                <div class="suggestions-list" id="suggestionsList"></div>
+                            </div>
+                        </div>
+                        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label for="transQty">Quantity</label>
+                                <input type="number" id="transQty" min="1" step="1" value="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="transUnitPrice">Price per Unit</label>
+                                <input type="number" id="transUnitPrice" min="0.01" step="0.01" required placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Total Amount: <strong id="calcTotalDisplay">0.00</strong></label>
                         </div>
                         <button type="submit" class="btn-primary">Add Record</button>
                     </form>
                 </section>
 
-                <!-- Accountant's Advice (AI Advice) -->
+                <!-- Accountant's Advice -->
                 <section class="advisor-section glass-panel">
                     <div class="advisor-header">
                         <div class="avatar">
@@ -115,7 +194,6 @@
                     <div class="advisor-content" id="advisorContent">
                         <p>I've seen the markets rise and fall for 20 years. Enter your financial data, and I'll give you a straight assessment of where your business stands.</p>
                     </div>
-                    
                     <details class="insights-details">
                         <summary>How general businesses lose money</summary>
                         <div class="insights-content">
@@ -123,7 +201,7 @@
                                 <li><strong>Poor Cash Flow Management:</strong> Waiting too long for receivables while payables are due.</li>
                                 <li><strong>Over-expansion:</strong> Expanding operations or hiring too quickly before revenue supports it.</li>
                                 <li><strong>Pricing Issues:</strong> Underpricing products to gain market share but destroying margins.</li>
-                                <li><strong>Ignoring Small Expenses:</strong> Death by a thousand cuts—subscriptions and minor fees add up.</li>
+                                <li><strong>Ignoring Small Expenses:</strong> Death by a thousand cuts — subscriptions and minor fees add up.</li>
                                 <li><strong>Lack of Emergency Fund:</strong> No buffer for economic downturns or supply chain shocks.</li>
                             </ul>
                         </div>
@@ -131,9 +209,8 @@
                 </section>
             </div>
 
-            <!-- Bottom Row: Chart & History -->
+            <!-- Bottom Row -->
             <div class="bottom-row">
-                <!-- Chart Section -->
                 <section class="chart-section glass-panel">
                     <h2>Financial Trend</h2>
                     <div class="chart-container">
@@ -141,22 +218,36 @@
                     </div>
                 </section>
 
-                <!-- Transaction History -->
                 <section class="history-section glass-panel">
                     <details class="transactions-tab" open>
                         <summary><h2>Your Transactions</h2></summary>
                         <div class="history-actions">
-                            <a href="transactions.html" target="_blank" class="btn-primary" style="text-align: center; display: block; text-decoration: none; margin-bottom: 1rem;">Open Full Ledger in New Page</a>
+                            <a href="transactions.html" target="_blank" class="btn-primary" style="text-align: center; display: block; text-decoration: none; margin-bottom: 1rem;">Open Full Ledger</a>
                         </div>
-                        <div class="history-list" id="historyList">
-                            <!-- History items generated via JS -->
-                        </div>
+                        <div class="history-list" id="historyList"></div>
                         <button id="clearDataBtn" class="btn-danger">Clear All Data</button>
                     </details>
                 </section>
             </div>
         </main>
     </div>
+
+    <!-- Floating Bottom-Right Buttons -->
+    <div class="floating-actions">
+        <button class="fab" id="btnCalc" title="Calculator">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8" y2="10.01"/><line x1="12" y1="10" x2="12" y2="10.01"/><line x1="16" y1="10" x2="16" y2="10.01"/><line x1="8" y1="14" x2="8" y2="14.01"/><line x1="12" y1="14" x2="12" y2="14.01"/><line x1="16" y1="14" x2="16" y2="14.01"/><line x1="8" y1="18" x2="8" y2="18.01"/><line x1="12" y1="18" x2="16" y2="18"/></svg>
+        </button>
+        <a href="contact.html" class="fab" title="Contact Us" style="background: linear-gradient(135deg, var(--neon-green), #059669);">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+        </a>
+        <a href="profile.html" class="fab" title="Business Profile">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </a>
+    </div>
+
+    <footer class="app-footer">
+        &copy; 2026 Dhruv Gupta-Financial Guardian. All rights reserved
+    </footer>
 
     <script src="shared.js"></script>
     <script src="script.js"></script>
