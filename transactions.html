@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Guardian | Full Ledger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        .ledger-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            text-align: left;
+        }
+        th, td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--panel-border);
+        }
+        th {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        .status-badge {
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+        .bg-green { background: rgba(16, 185, 129, 0.2); color: var(--neon-green); }
+        .bg-red { background: rgba(239, 68, 68, 0.2); color: var(--neon-red); }
+        .bg-blue { background: rgba(59, 130, 246, 0.2); color: var(--neon-blue); }
+        .bg-yellow { background: rgba(234, 179, 8, 0.15); color: var(--neon-yellow); }
+        .bg-gray { background: rgba(155, 163, 175, 0.15); color: var(--text-muted); }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .date-separator td {
+            background: rgba(59, 130, 246, 0.08);
+            font-weight: 700;
+            color: var(--neon-blue);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.6rem 1rem;
+        }
+        
+        tr.pending-row {
+            background: rgba(234, 179, 8, 0.05);
+        }
+        
+        .invoice-link {
+            color: var(--neon-blue);
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        
+        .btn-delete {
+            background: transparent;
+            color: var(--neon-red);
+            border: none;
+            cursor: pointer;
+            padding: 0.4rem;
+            border-radius: 4px;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-delete:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- View Invoice Modal -->
+    <div id="viewInvoiceModal" class="overlay" style="display: none;">
+        <div class="modal glass-panel" style="position: relative; max-width: 400px;">
+            <button class="modal-close" onclick="this.closest('.overlay').style.display='none'">×</button>
+            <h2>Invoice Details</h2>
+            <div id="viewInvoiceContent" style="margin-top: 1rem;"></div>
+            <div class="modal-actions" style="margin-top:1.5rem;">
+                <button class="btn-primary" onclick="printSimpleInvoice()">Print</button>
+                <button class="btn-danger" onclick="document.getElementById('viewInvoiceModal').style.display='none'">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ledger-container" id="printableLedger">
+        <header class="main-header" style="flex-direction: column; align-items: flex-start; margin-bottom: 2rem;">
+            <div class="logo">
+                <h1>Full Transaction Ledger</h1>
+                <p class="subtitle">Complete Financial History</p>
+            </div>
+            
+            <div class="header-actions no-print">
+                <button id="exportCsvBtn" class="btn-icon">Export to Spreadsheet (CSV)</button>
+                <button id="exportPdfBtn" class="btn-icon">Export to PDF (Clean)</button>
+                <a href="index.html" class="btn-icon" style="text-decoration: none;">Back to Dashboard</a>
+            </div>
+        </header>
+        
+        <div class="glass-panel" style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Description</th>
+                        <th>Qty</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Invoice / GST</th>
+                        <th>Amount</th>
+                        <th class="no-print">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="ledgerBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <footer class="app-footer no-print">
+        &copy; 2026 Dhruv Gupta-Financial Guardian. All rights reserved
+    </footer>
+
+    <script src="shared.js"></script>
+    <script src="transactions.js"></script>
+</body>
+</html>

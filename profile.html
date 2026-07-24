@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Guardian | Business Profile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        .profile-header h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #fff, #9ba3af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            color: #3b82f6;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 2rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        @media (max-width: 600px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+        .save-status {
+            color: #10b981;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .save-status.visible { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="profile-header">
+            <div>
+                <h1>Business Profile</h1>
+                <p style="color: #9ba3af;">Your details will auto-fill into GST invoices</p>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <span class="save-status" id="saveStatus">✓ Saved</span>
+                <a href="index.html" class="btn-icon" style="text-decoration: none; padding: 0.5rem 1rem;">← Back to Dashboard</a>
+            </div>
+        </div>
+
+        <form id="profileForm" class="glass-panel">
+            <h3 class="section-title">Enterprise Details</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Enterprise / Company Name</label>
+                    <input type="text" id="profCompanyName" placeholder="Your Business Name">
+                </div>
+                <div class="form-group">
+                    <label>GSTIN</label>
+                    <input type="text" id="profGstin" placeholder="e.g., 22AAAAA0000A1Z5" maxlength="15" style="text-transform: uppercase;">
+                </div>
+            </div>
+
+            <h3 class="section-title">Contact Details</h3>
+            <div class="form-group">
+                <label>Billing Address</label>
+                <input type="text" id="profAddress" placeholder="Full billing address">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="profPhone" placeholder="+91 XXXXX XXXXX">
+                </div>
+                <div class="form-group">
+                    <label>Email ID</label>
+                    <input type="email" id="profEmail" placeholder="you@business.com">
+                </div>
+            </div>
+
+            <h3 class="section-title">Bank Details</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Bank Name</label>
+                    <input type="text" id="profBankName" placeholder="e.g., State Bank of India">
+                </div>
+                <div class="form-group">
+                    <label>Account Number</label>
+                    <input type="text" id="profAccountNo" placeholder="Account Number" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>IFSC Code</label>
+                    <input type="text" id="profIfsc" placeholder="e.g., SBIN0001234" style="text-transform: uppercase;">
+                </div>
+                <div class="form-group">
+                    <label>Account Holder Name</label>
+                    <input type="text" id="profAccHolder" placeholder="Name as per bank" oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary">Save Profile</button>
+            <button type="button" class="btn-danger" id="btnWipeData" style="margin-top: 1.5rem; width: 100%; background: transparent; border: 1px solid var(--neon-red); color: var(--neon-red);">Wipe All Details</button>
+        </form>
+    </div>
+
+    <!-- Wipe Modal -->
+    <div id="wipeModal" class="overlay" style="display: none;">
+        <div class="modal glass-panel" style="max-width: 400px; text-align: center; position: relative;">
+            <button class="modal-close" onclick="this.closest('.overlay').style.display='none'">×</button>
+            <h2 style="color: var(--neon-red);">Warning</h2>
+            <p>Clicking on YES will clear all details you have entered on this website you can't restore data thenafter.</p>
+            <div class="modal-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center;">
+                <button id="btnConfirmWipe" class="btn-danger" disabled>YES (5)</button>
+                <button class="btn-primary" onclick="document.getElementById('wipeModal').style.display='none'">NO</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="app-footer">
+        &copy; 2026 Dhruv Gupta-Financial Guardian. All rights reserved
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        const profileFields = ['profCompanyName','profGstin','profAddress','profPhone','profEmail','profBankName','profAccountNo','profIfsc','profAccHolder'];
+        const profileData = JSON.parse(localStorage.getItem('fg_profile')) || {};
+
+        // Load saved data
+        profileFields.forEach(id => {
+            const el = document.getElementById(id);
+            if (profileData[id]) el.value = profileData[id];
+        });
+
+        applySharedFontSize();
+
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {};
+            profileFields.forEach(id => {
+                data[id] = document.getElementById(id).value;
+            });
+            localStorage.setItem('fg_profile', JSON.stringify(data));
+            const status = document.getElementById('saveStatus');
+            status.classList.add('visible');
+            setTimeout(() => status.classList.remove('visible'), 2000);
+        });
+
+        let wipeInterval;
+        document.getElementById('btnWipeData').addEventListener('click', () => {
+            document.getElementById('wipeModal').style.display = 'flex';
+            const btnYes = document.getElementById('btnConfirmWipe');
+            btnYes.disabled = true;
+            let timeLeft = 5;
+            btnYes.textContent = `YES (${timeLeft})`;
+            
+            clearInterval(wipeInterval);
+            wipeInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(wipeInterval);
+                    btnYes.disabled = false;
+                    btnYes.textContent = 'YES';
+                } else {
+                    btnYes.textContent = `YES (${timeLeft})`;
+                }
+            }, 1000);
+        });
+
+        document.getElementById('btnConfirmWipe').addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>
