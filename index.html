@@ -11,6 +11,26 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Help Icon (Top Right) -->
+    <div class="help-icon" id="helpIcon">
+        ?
+        <div class="help-tooltip">
+            <h3>📖 Financial Guardian Guide</h3>
+            <p><strong>Dashboard Summary:</strong> Displays your total real-time Savings, Expenses, and Pending Accounts.</p>
+            <p><strong>Record Transaction:</strong> 
+               - <em>Date:</em> Cannot be in the past.<br>
+               - <em>Type:</em> Revenue, Expense, or Pending (Account Receivable).<br>
+               - <em>Amount & Qty:</em> The price and quantity of the item.<br>
+               - <em>Description:</em> What the transaction was for.
+            </p>
+            <p><strong>Generate GST Invoice:</strong> Check this to automatically build a tax invoice for the entry.</p>
+            <p><strong>Presets:</strong> Click frequent items to auto-fill the form instantly.</p>
+            <p><strong>Accountant's Advice:</strong> Expand to read tips on why businesses lose money.</p>
+            <p><strong>Your Transactions:</strong> Quick view of the 5 most recent entries. Click "Open Full Ledger" to see everything, print past invoices, and delete entries.</p>
+            <p><strong>Floating Buttons (Bottom Right):</strong> Access the Calculator, Contact Developer, and Business Profile (where you manage your bank/GST details or wipe all data).</p>
+        </div>
+    </div>
+
     <!-- Welcome Overlay -->
     <div id="welcomeOverlay" class="overlay">
         <div class="modal glass-panel" style="position: relative;">
@@ -41,7 +61,7 @@
                 <button class="calc-btn" onclick="calcInput('7')">7</button>
                 <button class="calc-btn" onclick="calcInput('8')">8</button>
                 <button class="calc-btn" onclick="calcInput('9')">9</button>
-                <button class="calc-btn calc-op" onclick="calcInput('/')">/</button>
+                <button class="calc-btn calc-op" onclick="calcInput('/')">÷</button>
                 <button class="calc-btn" onclick="calcInput('4')">4</button>
                 <button class="calc-btn" onclick="calcInput('5')">5</button>
                 <button class="calc-btn" onclick="calcInput('6')">6</button>
@@ -50,18 +70,29 @@
                 <button class="calc-btn" onclick="calcInput('2')">2</button>
                 <button class="calc-btn" onclick="calcInput('3')">3</button>
                 <button class="calc-btn calc-op" onclick="calcInput('-')">-</button>
+                <button class="calc-btn calc-clear" onclick="calcClear()">C</button>
                 <button class="calc-btn" onclick="calcInput('0')">0</button>
                 <button class="calc-btn" onclick="calcInput('.')">.</button>
-                <button class="calc-btn" onclick="calcInput('%')">%</button>
                 <button class="calc-btn calc-op" onclick="calcInput('+')">+</button>
-                <button class="calc-btn" onclick="calcInput('(')">(</button>
-                <button class="calc-btn" onclick="calcInput(')')">)</button>
-                <button class="calc-btn calc-clear" onclick="calcClear()">C</button>
+                <button class="calc-btn calc-op" onclick="calcInput('%')">%</button>
+                <button class="calc-btn calc-op" onclick="calcInput('(')">(</button>
+                <button class="calc-btn calc-op" onclick="calcInput(')')">)</button>
                 <button class="calc-btn calc-equals" onclick="calcEval()">=</button>
             </div>
             <div class="modal-actions" style="margin-top: 1rem;">
                 <button class="btn-danger" onclick="document.getElementById('calcModal').style.display='none'">Close</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Tour Overlay -->
+    <div id="tourOverlay" class="tour-overlay"></div>
+    <div id="tourDialog" class="tour-dialog glass-panel">
+        <h2 id="tourTitle" style="color: var(--neon-blue); margin-bottom: 0.5rem; font-size: 1.2rem;">Step</h2>
+        <p id="tourDesc" style="font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.5;"></p>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <button class="btn-icon" style="color: var(--text-muted);" onclick="endTour()">Skip Tour</button>
+            <button id="tourNextBtn" class="btn-primary" onclick="nextTourStep()">Next</button>
         </div>
     </div>
 

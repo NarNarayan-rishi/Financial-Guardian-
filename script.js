@@ -136,7 +136,12 @@ window.resolvePending = function(id, newStatus) {
     if (remaining.length > 0) showPendingListNotification(remaining);
     else closeNotification();
 };
-window.closeNotification = function() { notificationModal.style.display = 'none'; };
+window.closeNotification = function() { 
+    notificationModal.style.display = 'none'; 
+    if (transactions.length === 0 && !localStorage.getItem('fg_tour_seen')) {
+        setTimeout(startTour, 400);
+    }
+};
 
 window.toggleExpectedDate = function() {
     if (transType.value === 'pending') {
@@ -486,6 +491,59 @@ window.closeGstModal = function() {
         saveTransaction(pendingTransData);
         pendingTransData = null;
     }
+};
+
+// ================= TOUR / TUTORIAL =================
+const tourSteps = [
+    { target: '.summary-cards', title: 'Dashboard Summary', desc: 'This section displays your real-time total Savings, total Expenses, and total Pending Accounts (Payments yet to be received).' },
+    { target: '.input-section', title: 'Record a Transaction', desc: 'Select Revenue, Expense, or Pending. Enter the Date, Description, Quantity, and Unit Price to log it.' },
+    { target: '#gstCheckboxRow', title: 'Generate GST Invoice', desc: 'Check this box before clicking Add Transaction to instantly build and print a professional GST tax invoice for your client.' },
+    { target: '.presets-section', title: 'Quick Presets', desc: 'Save time! Your most frequently entered descriptions will show here. Click one to auto-fill the form instantly.' },
+    { target: '.accountant-advice', title: "Accountant's Advice", desc: 'Expand this section to read valuable tips and common pitfalls to avoid losing money in your business.' },
+    { target: '.history-section', title: 'Your Transactions', desc: 'A quick look at your recent entries. Click "Open Full Ledger" to view all history, print past invoices, and delete entries.' },
+    { target: '.floating-actions', title: 'Quick Tools', desc: 'Use these floating buttons to access the built-in Calculator, Contact Developer, and Business Profile (where you manage your GST details and can wipe all data).' }
+];
+
+let currentTourStep = 0;
+
+window.startTour = function() {
+    document.getElementById('tourOverlay').style.display = 'block';
+    document.getElementById('tourDialog').style.display = 'block';
+    currentTourStep = 0;
+    showTourStep(currentTourStep);
+};
+
+function showTourStep(index) {
+    // Remove previous highlights
+    document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+    
+    if (index >= tourSteps.length) {
+        endTour();
+        return;
+    }
+    
+    const step = tourSteps[index];
+    const targetEl = document.querySelector(step.target);
+    if (targetEl) {
+        targetEl.classList.add('tour-highlight');
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    document.getElementById('tourTitle').innerText = `Step ${index + 1} of ${tourSteps.length}: ${step.title}`;
+    document.getElementById('tourDesc').innerText = step.desc;
+    document.getElementById('tourNextBtn').innerText = (index === tourSteps.length - 1) ? 'Finish' : 'Next';
+}
+
+window.nextTourStep = function() {
+    currentTourStep++;
+    showTourStep(currentTourStep);
+};
+
+window.endTour = function() {
+    document.getElementById('tourOverlay').style.display = 'none';
+    document.getElementById('tourDialog').style.display = 'none';
+    document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+    localStorage.setItem('fg_tour_seen', 'true');
 };
 
 // ================= DASHBOARD =================
