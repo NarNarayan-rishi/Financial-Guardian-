@@ -2,7 +2,7 @@
 // Common data and utilities for all pages
 
 let transactions = JSON.parse(localStorage.getItem('fg_transactions')) || [];
-let currentCurrencyCode = localStorage.getItem('fg_currency') || 'USD';
+let currentCurrencyCode = localStorage.getItem('fg_currency') || 'INR';
 let fontMultiplier = parseFloat(localStorage.getItem('fg_fontSize')) || 1.0;
 let presets = JSON.parse(localStorage.getItem('fg_presets')) || [];
 let descFrequency = JSON.parse(localStorage.getItem('fg_descFreq')) || {};

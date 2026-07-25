@@ -14,7 +14,7 @@
     <!-- Help Icon (Top Right) -->
     <div class="help-icon" id="helpIcon" onclick="toggleHelp(event)">
         ?
-        <div class="help-tooltip">
+        <div class="help-tooltip" id="helpTooltip">
             <h3>📖 Financial Guardian Guide</h3>
             <p><strong>Dashboard Summary:</strong> Displays your total real-time Savings, Expenses, and Pending Accounts.</p>
             <p><strong>Record Transaction:</strong> 
@@ -124,7 +124,7 @@
             <div class="controls">
                 <div class="setting-group">
                     <label for="currencyInput">Currency</label>
-                    <input type="text" id="currencyInput" placeholder="USD" maxlength="3" value="USD" style="text-transform: uppercase;">
+                    <input type="text" id="currencyInput" placeholder="INR" maxlength="3" value="INR" style="text-transform: uppercase;">
                 </div>
                 
                 <div class="setting-group font-controls">

@@ -136,7 +136,12 @@ window.resolvePending = function(id, newStatus) {
     if (remaining.length > 0) showPendingListNotification(remaining);
     else closeNotification();
 };
-window.closeNotification = function() { notificationModal.style.display = 'none'; };
+window.closeNotification = function() { 
+    notificationModal.style.display = 'none'; 
+    if (transactions.length === 0 && !localStorage.getItem('fg_tour_seen')) {
+        setTimeout(startTour, 400);
+    }
+};
 
 window.toggleExpectedDate = function() {
     if (transType.value === 'pending') {
@@ -661,10 +666,7 @@ function updateChart(dailyData) {
     });
 }
 
-// Check if tour should run for new/wiped users
-if (transactions.length === 0 && !localStorage.getItem('fg_tour_seen')) {
-    setTimeout(startTour, 600);
-}
+
 
 // ================= HELP GUIDE =================
 
