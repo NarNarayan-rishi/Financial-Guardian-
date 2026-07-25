@@ -136,12 +136,7 @@ window.resolvePending = function(id, newStatus) {
     if (remaining.length > 0) showPendingListNotification(remaining);
     else closeNotification();
 };
-window.closeNotification = function() { 
-    notificationModal.style.display = 'none'; 
-    if (transactions.length === 0 && !localStorage.getItem('fg_tour_seen')) {
-        setTimeout(startTour, 400);
-    }
-};
+window.closeNotification = function() { notificationModal.style.display = 'none'; };
 
 window.toggleExpectedDate = function() {
     if (transType.value === 'pending') {
@@ -157,9 +152,11 @@ window.toggleExpectedDate = function() {
 
 function init() {
     const dInput = document.getElementById('transDate');
+    const expectedDateInput = document.getElementById('expectedDate');
     const todayStr = new Date().toISOString().split('T')[0];
     dInput.value = todayStr;
     dInput.min = todayStr;
+    if (expectedDateInput) expectedDateInput.min = todayStr;
     currencyInput.value = currentCurrencyCode;
     applySharedFontSize();
     renderPresets();
@@ -427,6 +424,7 @@ window.generateFinalInvoice = function() {
                 ${signatureHtml}
             </div>
         </div>
+        <p style="text-align:center; font-size: 0.75rem; color: var(--text-muted); margin-top: 2rem; padding-top: 1rem; border-top: 1px dashed var(--panel-border);">Generated instantly via Financial Guardian.</p>
     </div>
     <div class="modal-actions" style="margin-top:1rem;">
         <button class="btn-primary" onclick="printInvoice()">Print / Save as PDF</button>
@@ -662,3 +660,26 @@ function updateChart(dailyData) {
         }
     });
 }
+
+// Check if tour should run for new/wiped users
+if (transactions.length === 0 && !localStorage.getItem('fg_tour_seen')) {
+    setTimeout(startTour, 600);
+}
+
+// ================= HELP GUIDE =================
+
+window.toggleHelp = function(e) {
+    e.stopPropagation();
+    const tooltip = document.getElementById('helpTooltip');
+    tooltip.classList.toggle('show');
+};
+
+document.addEventListener('click', function(e) {
+    const tooltip = document.getElementById('helpTooltip');
+    const helpIcon = document.getElementById('helpIcon');
+    if (tooltip && tooltip.classList.contains('show')) {
+        if (!helpIcon.contains(e.target) && !tooltip.contains(e.target)) {
+            tooltip.classList.remove('show');
+        }
+    }
+});

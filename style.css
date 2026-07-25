@@ -833,7 +833,7 @@ details[open] > summary::after {
     font-weight: bold;
     font-size: 1.2rem;
     opacity: 0.5;
-    cursor: help;
+    cursor: pointer;
     z-index: 9999;
     transition: opacity 0.3s;
 }
@@ -857,8 +857,11 @@ details[open] > summary::after {
     backdrop-filter: var(--glass-blur);
     cursor: default;
 }
+.help-tooltip.show {
+    display: block;
+}
 .help-tooltip h3 {
-    color: var(--neon-blue);
+    color: var(--neon-green);
     margin-bottom: 1rem;
     border-bottom: 1px solid var(--panel-border);
     padding-bottom: 0.5rem;
@@ -867,10 +870,6 @@ details[open] > summary::after {
     margin-bottom: 0.8rem;
     line-height: 1.4;
 }
-.help-icon:hover .help-tooltip {
-    display: block;
-}
-
 /* --- Tour Feature --- */
 .tour-overlay {
     position: fixed;
