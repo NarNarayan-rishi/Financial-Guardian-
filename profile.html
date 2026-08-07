@@ -225,6 +225,7 @@
                            'profBankName','profAccountNo','profIfsc','profAccHolder'];
 
         // Load saved values into inputs
+        const profileData = JSON.parse(localStorage.getItem('fg_profile')) || {};
         allFields.forEach(id => {
             const el = document.getElementById(id);
             if (el && profileData[id]) el.value = profileData[id];
