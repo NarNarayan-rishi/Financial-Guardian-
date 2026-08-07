@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="icon" type="image/jpeg" href="logo.jpg">
     <link rel="stylesheet" href="style.css">
     
     <style>
@@ -91,15 +92,17 @@
     </style>
 </head>
 <body>
+
     <!-- View Invoice Modal -->
     <div id="viewInvoiceModal" class="overlay" style="display: none;">
         <div class="modal glass-panel" style="position: relative; max-width: 400px;">
             <button class="modal-close" onclick="this.closest('.overlay').style.display='none'">×</button>
-            <h2>Invoice Details</h2>
+            <h2 data-i18n="btn_print">Invoice Details</h2>
             <div id="viewInvoiceContent" style="margin-top: 1rem;"></div>
             <div class="modal-actions" style="margin-top:1.5rem;">
-                <button class="btn-primary" onclick="printSimpleInvoice()">Print</button>
-                <button class="btn-danger" onclick="document.getElementById('viewInvoiceModal').style.display='none'">Close</button>
+                <button class="btn-primary" onclick="printSimpleInvoice()" data-i18n="btn_print">Print</button>
+                <button class="btn-danger" onclick="document.getElementById('viewInvoiceModal').style.display='none'" data-i18n="btn_close">Close</button>
+            </div>
             </div>
         </div>
     </div>
@@ -107,14 +110,28 @@
     <div class="ledger-container" id="printableLedger">
         <header class="main-header" style="flex-direction: column; align-items: flex-start; margin-bottom: 2rem;">
             <div class="logo">
-                <h1>Full Transaction Ledger</h1>
-                <p class="subtitle">Complete Financial History</p>
+                <h1><span data-i18n="ledger_title">Full Transaction Ledger</span> <span id="ledgerHelpIcon" onclick="startLedgerTour()" class="help-icon" style="margin-left: 0.5rem;" title="Start Interactive Tour">i</span></h1>
+                <p class="subtitle" data-i18n="ledger_subtitle">Complete Financial History</p>
             </div>
             
-            <div class="header-actions no-print">
-                <button id="exportCsvBtn" class="btn-icon">Export to Spreadsheet (CSV)</button>
-                <button id="exportPdfBtn" class="btn-icon">Export to PDF (Clean)</button>
-                <a href="index.html" class="btn-icon" style="text-decoration: none;">Back to Dashboard</a>
+            <div class="header-actions no-print" style="width: 100%;">
+                <button onclick="window.close(); window.location.href='index.html';" class="btn-icon" style="text-decoration: none;" data-i18n="btn_back_dash">Back to Dashboard</button>
+                <a href="gst_invoices.html" class="btn-icon" id="gstInvoicesBtn" style="text-decoration: none;" data-i18n="btn_gst_invoices">GST Invoices</a>
+                <button id="exportCsvBtn" class="btn-icon" data-i18n="btn_export_csv">Export (CSV)</button>
+                <button id="exportPdfBtn" class="btn-icon" data-i18n="btn_export_pdf">Export (PDF)</button>
+                
+                <div class="setting-group font-controls" style="margin-left: 0.5rem; display: flex; align-items: center; gap: 0.2rem;">
+                    <button id="decreaseFont" class="btn-icon" aria-label="Decrease Font Size" style="padding: 0.3rem 0.5rem; font-size: 0.8rem;">A-</button>
+                    <button id="increaseFont" class="btn-icon" aria-label="Increase Font Size" style="padding: 0.3rem 0.5rem; font-size: 0.8rem;">A+</button>
+                </div>
+                
+                <button id="clearDataBtn" class="btn-danger" style="width: auto; margin-top: 0; padding:0.3rem 0.6rem; font-size:0.75rem; margin-left: auto;" onclick="toggleSelectionMode()">Clear Data</button>
+                
+                <div id="clearDataActions" style="display:none; align-items:center; gap: 0.5rem; background: rgba(239, 68, 68, 0.1); padding: 0.2rem 0.5rem; border-radius: 8px; border: 1px solid var(--neon-red); margin-left: auto;">
+                    <span id="selectedCountDisplay" style="color:var(--neon-red);font-weight:bold;font-size:0.85rem;">0 Selected</span>
+                    <button class="btn-danger" style="width: auto; margin-top: 0; padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="bulkDeleteUI()">Proceed to Delete</button>
+                    <button class="btn-icon" style="padding:0.4rem; font-size:0.8rem; color: var(--text-muted);" onclick="toggleSelectionMode()">Cancel</button>
+                </div>
             </div>
         </header>
         
@@ -122,14 +139,15 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Date & Time</th>
-                        <th>Description</th>
-                        <th>Qty</th>
-                        <th>Type</th>
-                        <th>Status</th>
+                        <th class="selection-col" style="display:none; width: 40px;"><input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll()"></th>
+                        <th data-i18n="col_date">Date & Time</th>
+                        <th data-i18n="col_desc">Description</th>
+                        <th data-i18n="col_qty">Qty</th>
+                        <th data-i18n="col_type">Type</th>
+                        <th data-i18n="col_status">Status</th>
                         <th>Invoice / GST</th>
-                        <th>Amount</th>
-                        <th class="no-print">Action</th>
+                        <th data-i18n="col_amount">Amount</th>
+                        <th class="no-print" data-i18n="col_action">Action</th>
                     </tr>
                 </thead>
                 <tbody id="ledgerBody">
@@ -142,7 +160,41 @@
         &copy; 2026 Dhruv Gupta-Financial Guardian. All rights reserved
     </footer>
 
+    <!-- Partial Payment Modal -->
+    <div id="partialPayModal" class="overlay" style="display: none;">
+        <div class="modal glass-panel" style="position: relative; max-width: 450px;">
+            <button class="modal-close" onclick="document.getElementById('partialPayModal').style.display='none'">×</button>
+            <h2 id="partialPayTitle">Record Partial Payment</h2>
+            <p id="partialPayInfo" style="color: var(--text-muted); margin-bottom: 1rem;"></p>
+            <div class="form-group">
+                <label id="partialPayLabel">Amount Received</label>
+                <input type="number" id="partialPayAmount" min="0.01" step="0.01" placeholder="0.00">
+            </div>
+            <div class="form-group" id="partialNextDateGroup" style="display:none;">
+                <label>Next Expected Date for Remaining</label>
+                <input type="date" id="partialNextDate">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" onclick="submitPartialPayment()">Submit</button>
+                <button class="btn-danger" onclick="document.getElementById('partialPayModal').style.display='none'">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="translations.js"></script>
     <script src="shared.js"></script>
-    <script src="transactions.js"></script>
+    <script>
+        window.startLedgerTour = function() {
+            startTour([
+                { target: '.header-actions', title: 'Export & Clear Data', desc: 'Use these tools to securely export your ledger as CSV/PDF, or use Advanced Clear Data to bulk-delete transactions by specific dates.' },
+                { target: 'table', title: 'Full Ledger & Partial Payments', desc: 'View all transactions here. For Pending/Future Payments, you can use the Partial Payment button to slowly pay them off over time until settled.' },
+                { target: 'table', title: 'Necessary vs Unnecessary Expenses', desc: 'Track your spending habits! You can mark each expense in the ledger as Necessary or Unnecessary to help the AI Accountant give you better advice.' },
+                { target: 'table', title: 'Grouped GST Invoices', desc: 'GST invoices appear as a single grouped row for cleaner reading. Click "View Invoice" to instantly pull up the original saved HTML invoice.' }
+            ]);
+        };
+        
+        applySharedFontSize();
+    </script>
+    <script src="Transactions1.js"></script>
 </body>
 </html>
