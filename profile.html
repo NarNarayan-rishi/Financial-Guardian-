@@ -3,86 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial Guardian | Business Profile</title>
+    <title>Financial Guardian | Profile</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/jpeg" href="logo.jpg">
     <link rel="stylesheet" href="style.css">
     <style>
-        .profile-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        .profile-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 2rem;
-        }
-        .profile-header h1 {
-            font-size: 1.8rem;
-            background: linear-gradient(135deg, #fff, #9ba3af);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .section-title {
-            font-size: 1.1rem;
-            color: #3b82f6;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin: 2rem 0 1rem 0;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-        @media (max-width: 600px) {
-            .form-row { grid-template-columns: 1fr; }
-        }
-        .save-status {
-            color: #10b981;
-            font-size: 0.9rem;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
+        .profile-container { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .profile-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .profile-header h1 { font-size: 1.8rem; background: linear-gradient(135deg, #fff, #9ba3af); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .section-title { font-size: 1.1rem; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.05em; margin: 2rem 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+        .save-status { color: #10b981; font-size: 0.9rem; opacity: 0; transition: opacity 0.3s; }
         .save-status.visible { opacity: 1; }
+        .mode-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 0.5rem; }
+        .mode-table th, .mode-table td { padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--panel-border); text-align: left; }
+        .mode-table thead th { color: var(--text-muted); text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.04em; }
+        .mode-table thead th:not(:first-child) { text-align: center; }
+        .mode-table td:not(:first-child) { text-align: center; }
+        .mode-badge { display: inline-block; padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .badge-biz { background: rgba(59,130,246,0.2); color: var(--neon-blue); }
+        .badge-emp { background: rgba(16,185,129,0.2); color: var(--neon-green); }
+        .badge-stu { background: rgba(234,179,8,0.2); color: var(--neon-yellow); }
     </style>
 </head>
 <body>
     <div class="profile-container">
         <div class="profile-header">
             <div>
-                <h1>Business Profile</h1>
-                <p style="color: #9ba3af;">Your details will auto-fill into GST invoices</p>
+                <h1 id="profileTitle">Profile <span id="profileHelpIcon" onclick="startProfileTour()" class="help-icon" style="margin-left: 0.5rem;" title="Start Interactive Tour">i</span></h1>
+                <p id="profileSubtitle" style="color:#9ba3af;"></p>
             </div>
-            <div style="display: flex; gap: 1rem; align-items: center;">
-                <span class="save-status" id="saveStatus">✓ Saved</span>
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLScK4Q9HQuR9P_rFxmK1HJXI6bdNJciPX9ZRJB9nKbacKsVPHg/viewform?usp=dialog" target="_blank" class="btn-primary" style="text-decoration: none; padding: 0.5rem 1rem; background: var(--panel-border); color: #fff;">Send Feedback</a>
-                <a href="index.html" class="btn-icon" style="text-decoration: none; padding: 0.5rem 1rem;">← Back to Dashboard</a>
+            <div style="display:flex;gap:1rem;align-items:center;flex-wrap:nowrap;white-space:nowrap;">
+                <span class="save-status" id="saveStatus">&#10003; Saved</span>
+                <div class="setting-group font-controls" style="display: flex; align-items: center; gap: 0.2rem;">
+                    <button id="decreaseFont" class="btn-icon" aria-label="Decrease Font Size" style="padding: 0.3rem 0.5rem; font-size: 0.8rem;">A-</button>
+                    <button id="increaseFont" class="btn-icon" aria-label="Increase Font Size" style="padding: 0.3rem 0.5rem; font-size: 0.8rem;">A+</button>
+                </div>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLScK4Q9HQuR9P_rFxmK1HJXI6bdNJciPX9ZRJB9nKbacKsVPHg/viewform?usp=dialog" target="_blank" class="btn-primary" style="text-decoration:none;padding:0.5rem 1rem;background:var(--panel-border);color:var(--text-main);">Send Feedback</a>
+                <button onclick="window.close(); window.location.href='index.html';" class="btn-icon" style="text-decoration:none;padding:0.5rem 1rem;">&#8592; Dashboard</button>
             </div>
         </div>
 
         <form id="profileForm" class="glass-panel">
-            <h3 class="section-title">Enterprise Details</h3>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Enterprise / Company Name</label>
-                    <input type="text" id="profCompanyName" placeholder="Your Business Name">
-                </div>
-                <div class="form-group">
-                    <label>GSTIN</label>
-                    <input type="text" id="profGstin" placeholder="e.g., 22AAAAA0000A1Z5" maxlength="15" style="text-transform: uppercase;">
+
+            <!-- BUSINESS ONLY: Enterprise Details -->
+            <div id="sectionEnterprise">
+                <h3 class="section-title">Enterprise Details</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Enterprise / Company Name</label>
+                        <input type="text" id="profCompanyName" placeholder="Your Business Name">
+                    </div>
+                    <div class="form-group">
+                        <label>GSTIN</label>
+                        <input type="text" id="profGstin" placeholder="e.g., 22AAAAA0000A1Z5" maxlength="15" style="text-transform:uppercase;">
+                    </div>
                 </div>
             </div>
 
-            <h3 class="section-title">Contact Details</h3>
+            <!-- EMPLOYEE / STUDENT: Personal Details -->
+            <div id="sectionPersonal" style="display:none;">
+                <h3 class="section-title">Personal Details</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Your Full Name</label>
+                        <input type="text" id="profFullName" placeholder="Your Name">
+                    </div>
+                    <div class="form-group">
+                        <label id="companyLabel">Company / Organisation</label>
+                        <input type="text" id="profOrgName" placeholder="Where you work / study">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALL MODES: Contact Details -->
+            <h3 class="section-title" data-i18n="contact_details">Contact Details</h3>
             <div class="form-group">
-                <label>Billing Address</label>
-                <input type="text" id="profAddress" placeholder="Full billing address">
+                <label id="addressLabel" data-i18n="lbl_address">Billing Address</label>
+                <input type="text" id="profAddress" placeholder="Your address">
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -91,104 +92,254 @@
                 </div>
                 <div class="form-group">
                     <label>Email ID</label>
-                    <input type="email" id="profEmail" placeholder="you@business.com">
+                    <input type="email" id="profEmail" placeholder="you@email.com">
                 </div>
             </div>
 
-            <h3 class="section-title">Bank Details</h3>
+            <!-- ALL MODES: Bank Details -->
+            <h3 class="section-title" data-i18n="bank_details">Bank Details</h3>
             <div class="form-row">
                 <div class="form-group">
-                    <label>Bank Name</label>
+                    <label data-i18n="lbl_bank">Bank Name</label>
                     <input type="text" id="profBankName" placeholder="e.g., State Bank of India">
                 </div>
                 <div class="form-group">
                     <label>Account Number</label>
-                    <input type="text" id="profAccountNo" placeholder="Account Number" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    <input type="text" id="profAccountNo" placeholder="Account Number" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label>IFSC Code</label>
-                    <input type="text" id="profIfsc" placeholder="e.g., SBIN0001234" style="text-transform: uppercase;">
+                    <input type="text" id="profIfsc" placeholder="e.g., SBIN0001234" style="text-transform:uppercase;">
                 </div>
                 <div class="form-group">
                     <label>Account Holder Name</label>
-                    <input type="text" id="profAccHolder" placeholder="Name as per bank" oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')">
+                    <input type="text" id="profAccHolder" placeholder="Name as per bank" oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')">
                 </div>
             </div>
 
-            <button type="submit" class="btn-primary">Save Profile</button>
-            <button type="button" class="btn-danger" id="btnWipeData" style="margin-top: 1.5rem; width: 100%; background: transparent; border: 1px solid var(--neon-red); color: var(--neon-red);">Wipe All Details</button>
+
+            <!-- APP MODE -->
+            <h3 class="section-title">App Mode <sup><span onclick="document.getElementById('modeCompareModal').style.display='flex'" style="cursor:pointer;color:var(--neon-blue);font-size:0.75rem;border:1px solid var(--neon-blue);border-radius:50%;padding:0 4px;">?</span></sup></h3>
+            <div class="form-group">
+                <label>Select how you use this app:</label>
+                <div style="display:flex;gap:1.5rem;margin-top:0.5rem;flex-wrap:wrap;">
+                    <label style="cursor:pointer;display:flex;align-items:center;gap:0.4rem;">
+                        <input type="radio" name="appMode" value="business" onchange="applyProfileMode(this.value)"> &#127970; Business / Employer
+                    </label>
+                    <label style="cursor:pointer;display:flex;align-items:center;gap:0.4rem;">
+                        <input type="radio" name="appMode" value="employee" onchange="applyProfileMode(this.value)"> &#128084; Employee
+                    </label>
+                    <label style="cursor:pointer;display:flex;align-items:center;gap:0.4rem;">
+                        <input type="radio" name="appMode" value="student" onchange="applyProfileMode(this.value)"> &#127891; Student
+                    </label>
+                </div>
+                <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.3rem;">Changes which features appear on your dashboard.</p>
+            </div>
+
+            <!-- DATA MANAGEMENT -->
+            <h3 class="section-title">Data Management</h3>
+            <div class="form-row" style="margin-bottom:1rem;">
+                <button type="button" class="btn-primary" id="btnExportData" style="background:var(--neon-blue);">Export Backup</button>
+                <button type="button" class="btn-primary" onclick="document.getElementById('importFile').click()" style="background:var(--text-muted);color:var(--bg-dark);">Import Backup</button>
+                <input type="file" id="importFile" accept=".json" style="display:none;">
+            </div>
+
+            <button type="submit" class="btn-primary" data-i18n="btn_save_profile" style="margin-top:1rem;">Save Profile</button>
+            <button type="button" class="btn-danger" id="btnWipeData" style="margin-top:1rem;width:100%;background:transparent;border:1px solid var(--neon-red);color:var(--neon-red);">Wipe All Details</button>
         </form>
     </div>
 
-    <!-- Wipe Modal -->
-    <div id="wipeModal" class="overlay" style="display: none;">
-        <div class="modal glass-panel" style="max-width: 400px; text-align: center; position: relative;">
+    <!-- Profile Help Modal -->
+    <div id="profileHelpModal" class="overlay" style="display: none;">
+        <div class="modal glass-panel" style="position: relative; max-width: 500px;">
             <button class="modal-close" onclick="this.closest('.overlay').style.display='none'">×</button>
-            <h2 style="color: var(--neon-red);">Warning</h2>
-            <p>Clicking on YES will clear all details you have entered on this website you can't restore data thenafter.</p>
-            <div class="modal-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center;">
+            <h2>Profile Guide</h2>
+            <div style="margin-top: 1rem; font-size: 0.95rem; line-height: 1.5; color: var(--text-main);">
+                <p><strong>App Mode:</strong> Choose between Business, Employee, or Student to customize your dashboard features.</p>
+                <p><strong>Enterprise Details:</strong> (Business Mode only) Set your company name and GSTIN to auto-fill invoices.</p>
+                <p><strong>Data Backup:</strong> Use the Export/Import Backup buttons to save your data locally or restore it on a new device.</p>
+            </div>
+            <div class="modal-actions" style="margin-top:1.5rem;">
+                <button class="btn-primary" onclick="document.getElementById('profileHelpModal').style.display='none'">Got it</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mode Comparison Modal -->
+    <div id="modeCompareModal" class="overlay" style="display:none;">
+        <div class="modal glass-panel" style="max-width:700px;position:relative;width:95%;">
+            <button class="modal-close" onclick="this.closest('.overlay').style.display='none'">&#215;</button>
+            <h2 style="margin-bottom:1.2rem;">Mode Comparison</h2>
+            <div style="overflow-x:auto;">
+                <table class="mode-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th><span class="mode-badge badge-biz">&#127970; Business</span></th>
+                            <th><span class="mode-badge badge-emp">&#128084; Employee</span></th>
+                            <th><span class="mode-badge badge-stu">&#127891; Student</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>GST Invoice</td><td>Visible</td><td>Hidden</td><td>Hidden</td></tr>
+                        <tr><td>Enterprise Details</td><td>Visible</td><td>Hidden</td><td>Hidden</td></tr>
+                        <tr><td>Profile Info Requested</td><td>Full Enterprise Info</td><td>Name, Contact, Company, & Bank Details</td><td>Name, Contact, Company, & Bank Details</td></tr>
+                        <tr><td>Ledger Invoice Column</td><td>Shown</td><td>Hidden</td><td>Hidden</td></tr>
+                        <tr><td>Refresh Pop-up</td><td>Active</td><td>Active</td><td>Disabled</td></tr>
+                        <tr><td>"Payment Yet to Receive"</td><td>Available</td><td>Available</td><td>Removed</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wipe Modal -->
+    <div id="wipeModal" class="overlay" style="display:none;">
+        <div class="modal glass-panel" style="max-width:400px;text-align:center;position:relative;">
+            <button class="modal-close" onclick="this.closest('.overlay').style.display='none'">&#215;</button>
+            <h2 style="color:var(--neon-red);">Warning</h2>
+            <p>This will permanently clear ALL your data. This cannot be undone.</p>
+            <div class="modal-actions" style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;">
                 <button id="btnConfirmWipe" class="btn-danger" disabled>YES (5)</button>
                 <button class="btn-primary" onclick="document.getElementById('wipeModal').style.display='none'">NO</button>
             </div>
         </div>
     </div>
 
-    <footer class="app-footer">
-        &copy; 2026 Dhruv Gupta-Financial Guardian. All rights reserved
-    </footer>
+    <footer class="app-footer">&copy; 2026 Dhruv Gupta-Financial Guardian. All rights reserved</footer>
 
+    <script src="translations.js"></script>
     <script src="shared.js"></script>
     <script>
-        const profileFields = ['profCompanyName','profGstin','profAddress','profPhone','profEmail','profBankName','profAccountNo','profIfsc','profAccHolder'];
-        const profileData = JSON.parse(localStorage.getItem('fg_profile')) || {};
+        window.startProfileTour = function() {
+            startTour([
+                { target: '#sectionAppMode', title: 'App Mode Switcher', desc: 'Choose between Business 🏢, Employee 👔, and Student 🎓 mode. This dynamically changes the dashboard to hide features irrelevant to your chosen mode.' },
+                { target: '#sectionEnterprise', title: 'Enterprise Profile', desc: 'Enter your business details here. These will be automatically pulled when you generate professional GST invoices.' },
+                { target: '#profAutoSaveMode', title: 'Auto-Save Directory', desc: 'Give Financial Guardian permission to securely save GST invoices automatically straight to a specific folder on your computer!' }
+            ]);
+        };
+        const allFields = ['profCompanyName','profGstin','profFullName','profOrgName',
+                           'profAddress','profPhone','profEmail',
+                           'profBankName','profAccountNo','profIfsc','profAccHolder'];
 
-        // Load saved data
-        profileFields.forEach(id => {
+        // Load saved values into inputs
+        allFields.forEach(id => {
             const el = document.getElementById(id);
-            if (profileData[id]) el.value = profileData[id];
+            if (el && profileData[id]) el.value = profileData[id];
         });
 
+        // Load and apply saved mode
+        const savedMode = localStorage.getItem('fg_mode') || 'business';
+        const modeRadio = document.querySelector(`input[name="appMode"][value="${savedMode}"]`);
+        if (modeRadio) modeRadio.checked = true;
         applySharedFontSize();
+        applyProfileMode(savedMode);
 
+        function applyProfileMode(mode) {
+            const isBusiness = (mode === 'business');
+            const isEmployee = (mode === 'employee');
+            const isStudent  = (mode === 'student');
+
+            document.getElementById('sectionEnterprise').style.display = isBusiness ? 'block' : 'none';
+            document.getElementById('sectionPersonal').style.display   = (isEmployee || isStudent) ? 'block' : 'none';
+
+            document.getElementById('profileTitle').textContent =
+                isBusiness ? 'Business Profile' : (isEmployee ? 'Employee Profile' : 'Student Profile');
+            document.getElementById('profileSubtitle').textContent =
+                isBusiness ? 'Your details auto-fill into GST invoices' :
+                (isEmployee ? 'Your personal and company details' : 'Your personal details');
+            document.getElementById('companyLabel').textContent =
+                isStudent ? 'School / College / University' : 'Company / Organisation';
+            document.getElementById('addressLabel').textContent =
+                isBusiness ? 'Billing Address' : 'Home / Residential Address';
+        }
+
+        // Save form
         document.getElementById('profileForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const data = {};
-            profileFields.forEach(id => {
-                data[id] = document.getElementById(id).value;
+            allFields.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) data[id] = el.value;
             });
             localStorage.setItem('fg_profile', JSON.stringify(data));
+            const checkedMode = document.querySelector('input[name="appMode"]:checked');
+            if (checkedMode) localStorage.setItem('fg_mode', checkedMode.value);
             const status = document.getElementById('saveStatus');
             status.classList.add('visible');
             setTimeout(() => status.classList.remove('visible'), 2000);
         });
 
+        // Wipe data
         let wipeInterval;
         document.getElementById('btnWipeData').addEventListener('click', () => {
             document.getElementById('wipeModal').style.display = 'flex';
             const btnYes = document.getElementById('btnConfirmWipe');
             btnYes.disabled = true;
-            let timeLeft = 5;
-            btnYes.textContent = `YES (${timeLeft})`;
-            
+            let t = 5;
+            btnYes.textContent = 'YES (' + t + ')';
             clearInterval(wipeInterval);
             wipeInterval = setInterval(() => {
-                timeLeft--;
-                if (timeLeft <= 0) {
-                    clearInterval(wipeInterval);
-                    btnYes.disabled = false;
-                    btnYes.textContent = 'YES';
-                } else {
-                    btnYes.textContent = `YES (${timeLeft})`;
-                }
+                t--;
+                if (t <= 0) { clearInterval(wipeInterval); btnYes.disabled = false; btnYes.textContent = 'YES'; }
+                else btnYes.textContent = 'YES (' + t + ')';
             }, 1000);
         });
-
         document.getElementById('btnConfirmWipe').addEventListener('click', () => {
             localStorage.clear();
             window.location.href = 'index.html';
         });
+
+        // Export
+        document.getElementById('btnExportData').addEventListener('click', () => {
+            const data = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('fg_')) data[key] = localStorage.getItem(key);
+            }
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'FinancialGuardian_Backup_' + new Date().toISOString().split('T')[0] + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // Import
+        document.getElementById('importFile').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    let imported = false;
+                    for (const key in data) {
+                        if (key.startsWith('fg_')) { localStorage.setItem(key, data[key]); imported = true; }
+                    }
+                    if (imported) { alert('Backup imported! Returning to dashboard.'); window.location.href = 'index.html'; }
+                    else alert('Invalid backup file.');
+                } catch(err) { alert('Error reading backup file.'); }
+            };
+            reader.readAsText(file);
+        });
+
+        // Profile Help Modal & Tour
+        const profileHelpIcon = document.getElementById('profileHelpIcon');
+        const profileHelpModal = document.getElementById('profileHelpModal');
+        if (profileHelpIcon && profileHelpModal) {
+            profileHelpIcon.addEventListener('click', () => {
+                profileHelpModal.style.display = 'flex';
+            });
+            
+            if (!localStorage.getItem('fg_tour_profile')) {
+                profileHelpModal.style.display = 'flex';
+                localStorage.setItem('fg_tour_profile', 'true');
+            }
+        }
     </script>
 </body>
 </html>

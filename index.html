@@ -8,38 +8,108 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <link rel="icon" type="image/jpeg" href="logo.jpg">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Help Icon (Top Right) -->
-    <div class="help-icon" id="helpIcon" onclick="toggleHelp(event)">
-        ?
-        <div class="help-tooltip" id="helpTooltip">
-            <h3>📖 Financial Guardian Guide</h3>
-            <p><strong>Dashboard Summary:</strong> Displays your total real-time Savings, Expenses, and Pending Accounts.</p>
-            <p><strong>Record Transaction:</strong> 
-               - <em>Date:</em> Cannot be in the past.<br>
-               - <em>Type:</em> Revenue, Expense, or Pending (Account Receivable).<br>
-               - <em>Amount & Qty:</em> The price and quantity of the item.<br>
-               - <em>Description:</em> What the transaction was for.
-            </p>
-            <p><strong>Generate GST Invoice:</strong> Check this to automatically build a tax invoice for the entry.</p>
-            <p><strong>Presets:</strong> Click frequent items to auto-fill the form instantly.</p>
-            <p><strong>Accountant's Advice:</strong> Expand to read tips on why businesses lose money.</p>
-            <p><strong>Your Transactions:</strong> Quick view of the 5 most recent entries. Click "Open Full Ledger" to see everything, print past invoices, and delete entries.</p>
-            <p><strong>Floating Buttons (Bottom Right):</strong> Access the Calculator, Contact Developer, and Business Profile (where you manage your bank/GST details or wipe all data).</p>
+    <!-- Help & Info Icons (Top Right) -->
+    <div style="position: fixed; top: 1rem; right: 1rem; z-index: 1000; display: flex; gap: 0.5rem; align-items: center;">
+        <button id="langToggleBtn" onclick="toggleLanguage()" class="btn-icon" style="margin: 0; padding: 0.3rem 0.6rem; font-weight: bold;" title="Switch Language">अ/A</button>
+        <div class="help-icon" id="infoIcon" onclick="startDashboardTour()" style="position: static; cursor: pointer;" title="Start Interactive Tour">i</div>
+        <div style="display: none;">
+            <div class="help-tooltip" id="infoTooltip">
+                <h3>ℹ️ Know How: Dashboard Tools</h3>
+                <p><strong> अ/A Button:</strong> Instantly translates the app into Hindi.</p>
+                <p><strong>Dashboard Summary:</strong> Displays your total Savings, Expenses, and Pending Accounts. Use the <strong>Eye Icon</strong> to hide or reveal these sensitive numbers.</p>
+                <p><strong>Transaction Types:</strong>
+                   - <em>Revenue:</em> Money you have successfully received. Use when making a sale.<br>
+                   - <em>Expense:</em> Money you have spent. Use when buying goods or paying bills.<br>
+                   - <em>Payment to be made:</em> Money you owe to someone else (Accounts Payable). Use for purchases on credit.<br>
+                   - <em>Payment yet to receive:</em> Money owed to you (Accounts Receivable). Use when you sell on credit.
+                </p>
+                <p><strong>Record Transaction:</strong> The main form to log your daily business activities.</p>
+                <p><strong>Your Transactions:</strong> A quick view of your 5 most recent entries.</p>
+            </div>
+        </div>
+
+        <div class="help-icon" id="helpIcon" onclick="toggleHelp(event)" style="position: static;">
+            ?
+            <div class="help-tooltip" id="helpTooltip">
+                <h3>📖 Financial Guardian Guide</h3>
+                <p><strong>Eye Icon:</strong> Hides your main balance numbers from prying eyes.</p>
+                <p><strong>Transaction Types:</strong>
+                   - <em>Revenue:</em> For completed sales.<br>
+                   - <em>Expense:</em> For completed purchases.<br>
+                   - <em>Payment to be made:</em> When you buy on credit and owe money.<br>
+                   - <em>Payment yet to receive:</em> When you sell on credit and are owed money.
+                </p>
+                <p><strong>Accountant's Advice:</strong> Expand to read intelligent tips based on your spending habits.</p>
+                <p><strong>Presets:</strong> Click frequent items to auto-fill the form instantly.</p>
+                <p><strong>Generate GST Invoice:</strong> Check this to automatically build a tax invoice for the entry.</p>
+                <p><strong>Floating Buttons (Bottom Right):</strong> Access the Calculator, Contact Developer, and Business Profile.</p>
+            </div>
         </div>
     </div>
-
-
+    
+    <!-- Mode Indicator Button -->
+    <div style="position: fixed; top: 4.8rem; right: 1.1rem; z-index: 1000;">
+        <button id="quickModeBtn" onclick="cycleQuickMode()" class="btn-icon" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); font-size: 1.4rem; padding: 0; width: 42px; height: 42px; border: 1px solid var(--panel-border); box-shadow: 0 4px 6px rgba(0,0,0,0.3); border-radius: 50%; transition: all 0.3s; display: flex; align-items: center; justify-content: center;" title="Business Mode (Click to switch)">
+            🏢
+        </button>
+    </div>    <!-- Language Overlay -->
+    <div id="langOverlay" class="overlay" style="display: none; z-index: 2500;">
+        <div class="modal glass-panel" style="position: relative;">
+            <h2 data-i18n="lang_select_title">Choose Language / भाषा चुनें</h2>
+            <p data-i18n="lang_select_desc">Please select your preferred language to continue.</p>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: center;">
+                <button class="btn-primary" onclick="selectInitialLanguage('en')" data-i18n="btn_english">English</button>
+                <button class="btn-primary" onclick="selectInitialLanguage('hi')" data-i18n="btn_hindi">हिंदी</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Welcome Overlay -->
     <div id="welcomeOverlay" class="overlay">
         <div class="modal glass-panel" style="position: relative;">
             <button class="modal-close" onclick="this.closest('.overlay').style.display='none'">×</button>
-            <h2>Welcome Back</h2>
-            <p>Click below to open your dashboard and check for pending payments.</p>
-            <button id="btnEnterApp" class="btn-primary">Enter Dashboard</button>
+            <h2 data-i18n="welcome_back_title">Welcome Back</h2>
+            <p data-i18n="welcome_back_desc">Click below to open your dashboard and check for pending payments.</p>
+            <button id="btnEnterApp" class="btn-primary" data-i18n="btn_enter_app">Enter Dashboard</button>
+        </div>
+    </div>
+
+    <!-- Mode Selection Modal -->
+    <div id="modeSelectModal" class="overlay" style="display: none;">
+        <div class="modal glass-panel" style="position: relative; max-width: 700px; width: 95%;">
+            <h2 style="color: var(--neon-blue); margin-bottom: 0.5rem;" data-i18n="mode_select_title">How will you use Financial Guardian?</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;" data-i18n="mode_select_desc">Choose your mode. You can change this later in your Profile.</p>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--panel-border);">
+                            <th style="padding: 0.6rem; text-align: left;" data-i18n="col_feature">Feature</th>
+                            <th style="padding: 0.6rem; text-align: center; color: var(--neon-blue);" data-i18n="col_business">🏢 Business</th>
+                            <th style="padding: 0.6rem; text-align: center; color: var(--neon-green);" data-i18n="col_employee">👔 Employee</th>
+                            <th style="padding: 0.6rem; text-align: center; color: var(--neon-yellow);" data-i18n="col_student">🎓 Student</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid var(--panel-border);"><td style="padding: 0.5rem;" data-i18n="row_gst">GST Invoice Generation</td><td style="text-align:center;">✅</td><td style="text-align:center;">❌</td><td style="text-align:center;">❌</td></tr>
+                        <tr style="border-bottom: 1px solid var(--panel-border);"><td style="padding: 0.5rem;" data-i18n="row_alerts">Payment Yet to Receive Alerts</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">❌</td></tr>
+                        <tr style="border-bottom: 1px solid var(--panel-border);"><td style="padding: 0.5rem;" data-i18n="row_rev">Revenue / Savings Tracking</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+                        <tr style="border-bottom: 1px solid var(--panel-border);"><td style="padding: 0.5rem;" data-i18n="row_exp">Expense Tracking</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+                        <tr style="border-bottom: 1px solid var(--panel-border);"><td style="padding: 0.5rem;" data-i18n="row_profile">Enterprise / GSTIN Profile</td><td style="text-align:center;">✅</td><td style="text-align:center;">❌</td><td style="text-align:center;">❌</td></tr>
+                        <tr style="border-bottom: 1px solid var(--panel-border);"><td style="padding: 0.5rem;" data-i18n="row_ledger">Full Ledger with Invoice Column</td><td style="text-align:center;">✅</td><td style="text-align:center;">❌</td><td style="text-align:center;">❌</td></tr>
+                        <tr><td style="padding: 0.5rem;" data-i18n="row_ai">Accountant AI Advice</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <button class="btn-primary" style="padding: 0.8rem 1.5rem;" onclick="selectMode('business')" data-i18n="btn_business_select">🏢 Business / Employer</button>
+                <button class="btn-primary" style="padding: 0.8rem 1.5rem; background: var(--neon-green);" onclick="selectMode('employee')" data-i18n="btn_employee_select">👔 Employee</button>
+                <button class="btn-primary" style="padding: 0.8rem 1.5rem; background: var(--neon-yellow); color: #000;" onclick="selectMode('student')" data-i18n="btn_student_select">🎓 Student</button>
+            </div>
         </div>
     </div>
 
@@ -57,7 +127,7 @@
     <div id="calcModal" class="overlay" style="display: none;">
         <div class="modal glass-panel" style="max-width: 360px; position: relative;">
             <button class="modal-close" onclick="this.closest('.overlay').style.display='none'">×</button>
-            <h2>Calculator</h2>
+            <h2 data-i18n="calc_title">Calculator</h2>
             <input type="text" id="calcDisplay" class="calc-display" readonly>
             <div class="calc-grid">
                 <button class="calc-btn" onclick="calcInput('7')">7</button>
@@ -78,57 +148,38 @@
                 <button class="calc-btn calc-op" onclick="calcInput('+')">+</button>
                 <button class="calc-btn calc-op" onclick="calcInput('%')">%</button>
                 <button class="calc-btn calc-op" onclick="calcInput('(')">(</button>
-                <button class="calc-btn calc-op" onclick="calcInput(')')">)</button>
+                <button class="calc-btn calc-op" onclick="calcInput(')')">) </button>
                 <button class="calc-btn calc-equals" onclick="calcEval()">=</button>
             </div>
             <div class="modal-actions" style="margin-top: 1rem;">
-                <button class="btn-danger" onclick="document.getElementById('calcModal').style.display='none'">Close</button>
+                <button class="btn-danger" onclick="document.getElementById('calcModal').style.display='none'" data-i18n="btn_close">Close</button>
             </div>
         </div>
     </div>
 
-    <!-- Tour Overlay -->
-    <div id="tourOverlay" class="tour-overlay"></div>
-    <div id="tourDialog" class="tour-dialog glass-panel">
-        <h2 id="tourTitle" style="color: var(--neon-blue); margin-bottom: 0.5rem; font-size: 1.2rem;">Step</h2>
-        <p id="tourDesc" style="font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.5;"></p>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <button class="btn-icon" style="color: var(--text-muted);" onclick="endTour()">Skip Tour</button>
-            <button id="tourNextBtn" class="btn-primary" onclick="nextTourStep()">Next</button>
-        </div>
-    </div>
+
 
     <div class="app-container">
         <!-- Header -->
         <header class="glass-panel main-header">
             <div class="logo">
-                <div class="logo-icon">
-                    <svg viewBox="0 0 40 40" width="40" height="40" fill="none">
-                        <defs>
-                            <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
-                                <stop offset="0%" stop-color="#3b82f6"/>
-                                <stop offset="100%" stop-color="#10b981"/>
-                            </linearGradient>
-                        </defs>
-                        <rect x="2" y="2" width="36" height="36" rx="10" stroke="url(#logoGrad)" stroke-width="2.5" fill="none"/>
-                        <path d="M12 28 L16 18 L20 22 L26 12" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                        <circle cx="28" cy="12" r="2" fill="#10b981"/>
-                    </svg>
+                <div class="logo-icon" style="background: none; padding: 0;">
+                    <img src="logo.jpg" alt="Logo" style="width: 48px; height: 48px; border-radius: 12px; object-fit: cover;">
                 </div>
                 <div>
-                    <h1>Financial Guardian</h1>
-                    <p class="subtitle">Veteran Insight for Modern Business</p>
+                    <h1 data-i18n="app_title">Financial Guardian</h1>
+                    <p class="subtitle" data-i18n="app_subtitle">Veteran Insight for Modern Business</p>
                 </div>
             </div>
             
             <div class="controls">
                 <div class="setting-group">
-                    <label for="currencyInput">Currency</label>
+                    <label for="currencyInput" data-i18n="currency_label">Currency</label>
                     <input type="text" id="currencyInput" placeholder="INR" maxlength="3" value="INR" style="text-transform: uppercase;">
                 </div>
                 
                 <div class="setting-group font-controls">
-                    <span class="label">Text Size</span>
+                    <span class="label" data-i18n="text_size">Text Size</span>
                     <button id="decreaseFont" class="btn-icon" aria-label="Decrease Font Size">A-</button>
                     <button id="increaseFont" class="btn-icon" aria-label="Increase Font Size">A+</button>
                 </div>
@@ -140,17 +191,33 @@
             
             <!-- Summary Cards -->
             <section class="summary-section">
-                <div class="summary-card glass-panel revenue-card">
-                    <h3>Total Revenue</h3>
-                    <h2 id="totalRevenueDisplay" class="amount positive">0.00</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;" data-i18n="fin_summary">Financial Summary</span>
+                    <button class="btn-icon" id="balanceToggleBtn" onclick="toggleBalanceVisibility()" style="margin: 0; padding: 0.3rem;" aria-label="Toggle Balance Visibility">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
                 </div>
-                <div class="summary-card glass-panel expense-card">
-                    <h3>Total Expenses</h3>
-                    <h2 id="totalExpenseDisplay" class="amount negative">0.00</h2>
-                </div>
-                <div class="summary-card glass-panel net-card">
-                    <h3>Net Balance</h3>
-                    <h2 id="netBalanceDisplay" class="amount neutral">0.00</h2>
+                <div id="balanceAmountsWrapper" class="summary-cards">
+                    <div class="summary-card glass-panel revenue-card">
+                        <h3 data-i18n="total_revenue">Total Revenue</h3>
+                        <h2 id="totalRevenueDisplay" class="amount positive">0.00</h2>
+                    </div>
+                    <div class="summary-card glass-panel expense-card">
+                        <h3 data-i18n="total_expenses">Total Expenses</h3>
+                        <h2 id="totalExpenseDisplay" class="amount negative">0.00</h2>
+                    </div>
+                    <div class="summary-card glass-panel net-card">
+                        <h3 data-i18n="net_balance">Net Balance</h3>
+                        <h2 id="netBalanceDisplay" class="amount neutral">0.00</h2>
+                    </div>
+                    <div class="summary-card glass-panel pending-card">
+                        <h3 data-i18n="payment_to_make">Payment to be made</h3>
+                        <h2 id="futurePayDisplay" class="amount" style="color: var(--neon-yellow);">0.00</h2>
+                    </div>
+                    <div class="summary-card glass-panel receive-card" id="receiveCardWrapper">
+                        <h3 data-i18n="payment_to_receive">Payment yet to receive</h3>
+                        <h2 id="pendingReceiveDisplay" class="amount" style="color: var(--neon-blue);">0.00</h2>
+                    </div>
                 </div>
             </section>
 
@@ -158,61 +225,100 @@
             <div class="middle-row">
                 <!-- Input Form -->
                 <section class="input-section glass-panel">
-                    <h2>Record Transaction</h2>
+                    <h2 data-i18n="record_tx">Record Transaction</h2>
                     
                     <!-- Presets -->
                     <div class="presets-section">
-                        <h3>Quick Presets</h3>
+                        <h3 data-i18n="quick_presets">Quick Presets</h3>
                         <div class="preset-chips" id="presetChips"></div>
                         <div class="add-preset-row">
-                            <input type="text" id="newPresetInput" placeholder="Preset name">
-                            <input type="number" id="newPresetPrice" placeholder="Price" min="0.01" step="0.01" style="width: 80px;">
-                            <button class="btn-icon" id="addPresetBtn">+ Add</button>
+                            <input type="text" id="newPresetInput" placeholder="Preset name" data-i18n-placeholder="preset_name">
+                            <input type="number" id="newPresetPrice" placeholder="Price" data-i18n-placeholder="price" min="0.01" step="0.01" style="width: 80px;">
+                            <select id="newPresetType" style="width: auto; padding: 0.4rem 0.6rem; background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); color: var(--text-main); border-radius: 6px; font-family: inherit;">
+                                <option value="revenue" data-i18n="type_revenue" style="background: var(--bg-dark); color: #ffffff;">Revenue</option>
+                                <option value="expense" data-i18n="type_expense" style="background: var(--bg-dark); color: #ffffff;">Expense</option>
+                                <option value="pending" data-i18n="type_pending" style="background: var(--bg-dark); color: #ffffff;">Pending (Recv.)</option>
+                                <option value="futurepay" data-i18n="type_futurepay" style="background: var(--bg-dark); color: #ffffff;">Future Pay</option>
+                            </select>
+                            <button class="btn-icon" id="addPresetBtn" data-i18n="btn_add_preset">+ Add</button>
                         </div>
                     </div>
                     
                     <form id="transactionForm">
                         <div class="form-group">
-                            <label for="transDate">Date</label>
+                            <label for="transDate" data-i18n="lbl_date">Date</label>
                             <input type="date" id="transDate" required>
                         </div>
                         <div class="form-group">
-                            <label for="transType">Type</label>
+                            <label for="transType" data-i18n="lbl_type">Type</label>
                             <select id="transType" required onchange="toggleExpectedDate()">
-                                <option value="revenue">Revenue / Savings</option>
-                                <option value="expense">Expense</option>
-                                <option value="pending">Payment yet to be received</option>
+                                <option value="revenue" data-i18n="type_revenue" style="background: var(--bg-dark); color: #ffffff;">Revenue / Savings</option>
+                                <option value="expense" data-i18n="type_expense" style="background: var(--bg-dark); color: #ffffff;">Expense</option>
+                                <option value="pending" data-i18n="type_pending" style="background: var(--bg-dark); color: #ffffff;">Payment yet to be received</option>
+                                <option value="futurepay" data-i18n="type_futurepay" style="background: var(--bg-dark); color: #ffffff;">Payment to be Made in Future</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0.5rem;">
+                            <label style="margin-bottom: 0.3rem;" data-i18n="lbl_payment_mode">Payment Method</label>
+                            <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: nowrap;">
+                                <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; margin: 0; font-size: 0.9rem; white-space: nowrap;">
+                                    <input type="radio" name="paymentMethod" id="payOffline" value="offline" checked style="width: auto; padding: 0;"> <span data-i18n="mode_cash">Offline / Cash</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; margin: 0; font-size: 0.9rem; white-space: nowrap;">
+                                    <input type="radio" name="paymentMethod" id="payOnline" value="online" style="width: auto; padding: 0;"> <span data-i18n="mode_online">Online / UPI</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <label for="transCategory" style="margin-bottom: 0;" data-i18n="lbl_category">Category</label>
+                                <span id="toggleCategoryBtn" style="cursor: pointer; color: var(--neon-blue); font-size: 0.85rem;" onclick="toggleCategory()" data-i18n="btn_add_category">+ Add Category</span>
+                            </div>
+                            <select id="transCategory" style="display: none;">
+                                <option value="sales" data-i18n="cat_sales">Sales & Revenue</option>
+                                <option value="salary" data-i18n="cat_salary">Salary & Wages</option>
+                                <option value="food" data-i18n="cat_food">Food & Dining</option>
+                                <option value="rent" data-i18n="cat_rent">Rent & Utilities</option>
+                                <option value="software" data-i18n="cat_tech">Software & Tech</option>
+                                <option value="marketing" data-i18n="cat_marketing">Marketing</option>
+                                <option value="transportation" data-i18n="cat_transport">Transportation</option>
+                                <option value="taxes" data-i18n="cat_taxes">Taxes</option>
+                                <option value="other" data-i18n="cat_other">Other</option>
                             </select>
                         </div>
                         <div class="form-group" id="expectedDateGroup" style="display: none;">
-                            <label for="expectedDate">Expected Date of Payment</label>
+                            <label for="expectedDate" data-i18n="lbl_expected_date">Expected Date of Payment</label>
                             <input type="date" id="expectedDate">
                         </div>
                         <div class="gst-checkbox-row" id="gstCheckboxRow">
                             <input type="checkbox" id="generateGstInvoice">
-                            <label for="generateGstInvoice" style="margin: 0; color: var(--text-muted); font-size: 0.85rem;">Generate GST Invoice for this transaction</label>
+                            <label for="generateGstInvoice" style="margin: 0; color: var(--text-muted); font-size: 0.85rem;" data-i18n="gen_gst_label">Generate GST Invoice for this transaction</label>
                         </div>
                         <div class="form-group">
-                            <label for="transDesc">Description</label>
+                            <label for="transDesc" data-i18n="lbl_desc">Description</label>
                             <div class="desc-wrapper">
                                 <input type="text" id="transDesc" placeholder="e.g., Office Supplies" required autocomplete="off">
                                 <div class="suggestions-list" id="suggestionsList"></div>
                             </div>
                         </div>
-                        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <div class="form-group">
-                                <label for="transQty">Quantity</label>
+                        <div data-qty-row style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="transQty" data-i18n="lbl_qty">Quantity</label>
                                 <input type="number" id="transQty" min="1" step="1" value="1" required>
                             </div>
-                            <div class="form-group">
-                                <label for="transUnitPrice">Price per Unit</label>
-                                <input type="number" id="transUnitPrice" min="0.01" step="0.01" required placeholder="0.00">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="transUnitPrice" data-i18n="lbl_price">Price per Unit</label>
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <input type="number" id="transUnitPrice" min="0.01" step="0.01" required placeholder="0.00" style="flex: 1;">
+                                    <button type="button" id="scanBillBtn" onclick="document.getElementById('ocrImageInput').click()" class="btn-icon" style="background: rgba(255,255,255,0.05); border: 1px solid var(--panel-border); border-radius: 6px; padding: 0; width: 44px; height: 44px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" title="Scan Handwritten Price">📷</button>
+                                </div>
+                                <input type="file" id="ocrImageInput" accept="image/*" capture="environment" style="display: none;" onchange="processOcrImage(this)">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>Total Amount: <strong id="calcTotalDisplay">0.00</strong></label>
+                            <label><span data-i18n="lbl_total">Total Amount:</span> <strong id="calcTotalDisplay">0.00</strong></label>
                         </div>
-                        <button type="submit" class="btn-primary">Add Record</button>
+                        <button type="submit" class="btn-primary" data-i18n="btn_add_tx">Add Record</button>
                     </form>
                 </section>
 
@@ -222,20 +328,20 @@
                         <div class="avatar">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                         </div>
-                        <h2>Accountant's Advice</h2>
+                        <h2 data-i18n="advice_title">Accountant's Advice</h2>
                     </div>
                     <div class="advisor-content" id="advisorContent">
-                        <p>I've seen the markets rise and fall for 20 years. Enter your financial data, and I'll give you a straight assessment of where your business stands.</p>
+                        <p data-i18n="advice_default">I've seen the markets rise and fall for 20 years. Enter your financial data, and I'll give you a straight assessment of where your business stands.</p>
                     </div>
                     <details class="insights-details">
-                        <summary>How general businesses lose money</summary>
+                        <summary data-i18n="insights_summary">How general businesses lose money</summary>
                         <div class="insights-content">
                             <ul>
-                                <li><strong>Poor Cash Flow Management:</strong> Waiting too long for receivables while payables are due.</li>
-                                <li><strong>Over-expansion:</strong> Expanding operations or hiring too quickly before revenue supports it.</li>
-                                <li><strong>Pricing Issues:</strong> Underpricing products to gain market share but destroying margins.</li>
-                                <li><strong>Ignoring Small Expenses:</strong> Death by a thousand cuts — subscriptions and minor fees add up.</li>
-                                <li><strong>Lack of Emergency Fund:</strong> No buffer for economic downturns or supply chain shocks.</li>
+                                <li data-i18n="ins_1"><strong>Poor Cash Flow Management:</strong> Waiting too long for receivables while payables are due.</li>
+                                <li data-i18n="ins_2"><strong>Over-expansion:</strong> Expanding operations or hiring too quickly before revenue supports it.</li>
+                                <li data-i18n="ins_3"><strong>Pricing Issues:</strong> Underpricing products to gain market share but destroying margins.</li>
+                                <li data-i18n="ins_4"><strong>Ignoring Small Expenses:</strong> Death by a thousand cuts — subscriptions and minor fees add up.</li>
+                                <li data-i18n="ins_5"><strong>Lack of Emergency Fund:</strong> No buffer for economic downturns or supply chain shocks.</li>
                             </ul>
                         </div>
                     </details>
@@ -245,20 +351,27 @@
             <!-- Bottom Row -->
             <div class="bottom-row">
                 <section class="chart-section glass-panel">
-                    <h2>Financial Trend</h2>
-                    <div class="chart-container">
-                        <canvas id="financialChart"></canvas>
+                    <h2 data-i18n="chart_title">Financial Overview</h2>
+                    <div class="chart-container" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <div style="flex: 2; min-width: 300px; height: 300px;">
+                            <canvas id="financialChart"></canvas>
+                        </div>
+                        <div style="flex: 1; min-width: 250px; height: 300px; display: flex; flex-direction: column; align-items: center;">
+                            <h3 style="font-size: 0.9rem; margin-bottom: 0.5rem;" data-i18n="cat_exp_chart">Expenses by Category</h3>
+                            <div style="width: 100%; height: 100%; position: relative;">
+                                <canvas id="expensePieChart"></canvas>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
                 <section class="history-section glass-panel">
                     <details class="transactions-tab" open>
-                        <summary><h2>Your Transactions</h2></summary>
+                        <summary><h2 data-i18n="your_tx">Your Transactions</h2></summary>
                         <div class="history-actions">
-                            <a href="transactions.html" target="_blank" class="btn-primary" style="text-align: center; display: block; text-decoration: none; margin-bottom: 1rem;">Open Full Ledger</a>
+                            <a href="transactions.html" target="_blank" class="btn-primary" style="text-align: center; display: block; text-decoration: none; margin-bottom: 1rem;" data-i18n="btn_open_ledger">Open Full Ledger</a>
                         </div>
                         <div class="history-list" id="historyList"></div>
-                        <button id="clearDataBtn" class="btn-danger">Clear All Data</button>
                     </details>
                 </section>
             </div>
@@ -267,21 +380,46 @@
 
     <!-- Floating Bottom-Right Buttons -->
     <div class="floating-actions">
+        <a href="gst_invoices.html" target="_blank" class="fab" title="GST Invoices" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/></svg>
+        </a>
         <button class="fab" id="btnCalc" title="Calculator">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8" y2="10.01"/><line x1="12" y1="10" x2="12" y2="10.01"/><line x1="16" y1="10" x2="16" y2="10.01"/><line x1="8" y1="14" x2="8" y2="14.01"/><line x1="12" y1="14" x2="12" y2="14.01"/><line x1="16" y1="14" x2="16" y2="14.01"/><line x1="8" y1="18" x2="8" y2="18.01"/><line x1="12" y1="18" x2="16" y2="18"/></svg>
         </button>
-        <a href="contact.html" class="fab" title="Contact Us" style="background: linear-gradient(135deg, var(--neon-green), #059669);">
+        <a href="contact.html" target="_blank" class="fab" title="Contact Us" style="background: linear-gradient(135deg, var(--neon-green), #059669);">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
         </a>
-        <a href="profile.html" class="fab" title="Business Profile">
+        <a href="profile.html" target="_blank" class="fab" title="Business Profile">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </a>
+    </div>
+
+    <!-- Partial Payment Modal -->
+    <div id="partialPayModal" class="overlay" style="display: none;">
+        <div class="modal glass-panel" style="position: relative; max-width: 450px;">
+            <button class="modal-close" onclick="document.getElementById('partialPayModal').style.display='none'">×</button>
+            <h2 id="partialPayTitle">Record Partial Payment</h2>
+            <p id="partialPayInfo" style="color: var(--text-muted); margin-bottom: 1rem;"></p>
+            <div class="form-group">
+                <label id="partialPayLabel">Amount Received</label>
+                <input type="number" id="partialPayAmount" min="0.01" step="0.01" placeholder="0.00">
+            </div>
+            <div class="form-group" id="partialNextDateGroup" style="display:none;">
+                <label>Next Expected Date for Remaining</label>
+                <input type="date" id="partialNextDate">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" onclick="submitPartialPayment()">Submit</button>
+                <button class="btn-danger" onclick="document.getElementById('partialPayModal').style.display='none'">Cancel</button>
+            </div>
+        </div>
     </div>
 
     <footer class="app-footer">
         &copy; 2026 Dhruv Gupta-Financial Guardian. All rights reserved
     </footer>
 
+    <script src="translations.js"></script>
     <script src="shared.js"></script>
     <script src="script.js"></script>
 </body>

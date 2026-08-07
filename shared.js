@@ -1,11 +1,18 @@
 // --- shared.js ---
 // Common data and utilities for all pages
 
-let transactions = JSON.parse(localStorage.getItem('fg_transactions')) || [];
+let transactions = [];
+try { transactions = JSON.parse(localStorage.getItem('fg_transactions')) || []; } catch(e) { console.error(e); }
+
 let currentCurrencyCode = localStorage.getItem('fg_currency') || 'INR';
-let fontMultiplier = parseFloat(localStorage.getItem('fg_fontSize')) || 1.0;
-let presets = JSON.parse(localStorage.getItem('fg_presets')) || [];
-let descFrequency = JSON.parse(localStorage.getItem('fg_descFreq')) || {};
+let fontMultiplier = parseFloat(localStorage.getItem('fg_fontSize'));
+if (isNaN(fontMultiplier)) fontMultiplier = 0.8; // Default to 2nd smallest size
+
+let presets = [];
+try { presets = JSON.parse(localStorage.getItem('fg_presets')) || []; } catch(e) { console.error(e); }
+
+let descFrequency = {};
+try { descFrequency = JSON.parse(localStorage.getItem('fg_descFreq')) || {}; } catch(e) { console.error(e); }
 
 const currencySymbols = {
     'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 'INR': '₹',
@@ -21,6 +28,89 @@ function getCurrencySymbol(code) {
 function applySharedFontSize() {
     document.documentElement.style.setProperty('--font-base-size', `${16 * fontMultiplier}px`);
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btnInc = document.getElementById('increaseFont');
+    const btnDec = document.getElementById('decreaseFont');
+    if (btnInc) {
+        btnInc.addEventListener('click', () => { 
+            if (fontMultiplier < 1.5) fontMultiplier += 0.1; 
+            localStorage.setItem('fg_fontSize', fontMultiplier); 
+            applySharedFontSize(); 
+        });
+    }
+    if (btnDec) {
+        btnDec.addEventListener('click', () => { 
+            if (fontMultiplier > 0.7) fontMultiplier -= 0.1; 
+            localStorage.setItem('fg_fontSize', fontMultiplier); 
+            applySharedFontSize(); 
+        });
+    }
+});
+
+// ================= GLOBAL TOUR SYSTEM =================
+let currentTourStep = 0;
+let globalTourSteps = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Inject Tour DOM Elements if they don't exist
+    if (!document.getElementById('tourOverlay')) {
+        const tourHtml = `
+            <div id="tourOverlay" class="tour-overlay"></div>
+            <div id="tourDialog" class="tour-dialog glass-panel">
+                <h2 id="tourTitle" style="color: var(--neon-blue); margin-bottom: 0.5rem; font-size: 1.2rem;">Step</h2>
+                <p id="tourDesc" style="font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.5;"></p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <button class="btn-icon" style="color: var(--text-muted);" onclick="endTour()">Skip Tour</button>
+                    <button id="tourNextBtn" class="btn-primary" onclick="nextTourStep()">Next</button>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', tourHtml);
+    }
+});
+
+window.startTour = function(steps = null) {
+    if (steps && steps.length > 0) globalTourSteps = steps;
+    if (globalTourSteps.length === 0) return;
+    
+    document.getElementById('tourOverlay').style.display = 'block';
+    document.getElementById('tourDialog').style.display = 'block';
+    currentTourStep = 0;
+    showTourStep(currentTourStep);
+};
+
+window.showTourStep = function(index) {
+    document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+    
+    if (index >= globalTourSteps.length) {
+        endTour();
+        return;
+    }
+    
+    const step = globalTourSteps[index];
+    const targetEl = document.querySelector(step.target);
+    if (targetEl) {
+        targetEl.classList.add('tour-highlight');
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    document.getElementById('tourTitle').innerText = `Step ${index + 1} of ${globalTourSteps.length}: ${step.title}`;
+    document.getElementById('tourDesc').innerText = step.desc;
+    document.getElementById('tourNextBtn').innerText = (index === globalTourSteps.length - 1) ? 'Finish' : 'Next';
+};
+
+window.nextTourStep = function() {
+    currentTourStep++;
+    showTourStep(currentTourStep);
+};
+
+window.endTour = function() {
+    document.getElementById('tourOverlay').style.display = 'none';
+    document.getElementById('tourDialog').style.display = 'none';
+    document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+    localStorage.setItem('fg_tour_seen', 'true');
+};
 
 function saveData() {
     localStorage.setItem('fg_transactions', JSON.stringify(transactions));
@@ -53,21 +143,23 @@ function getProfile() {
 }
 
 function formatMoney(amount) {
+    const num = parseFloat(amount) || 0;
     const symbol = getCurrencySymbol(currentCurrencyCode);
     let formattedNum;
     const indianCurrencies = ['INR', 'PKR', 'BDT', 'LKR', 'NPR'];
     if (indianCurrencies.includes(currentCurrencyCode)) {
-        formattedNum = amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        formattedNum = num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     } else {
-        formattedNum = amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        formattedNum = num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
     return `${symbol}${formattedNum}`;
 }
 
 function formatDateDisplay(isoDate) {
     if (!isoDate) return '';
-    const parts = isoDate.split('-');
-    if (parts.length !== 3) return isoDate;
+    const dateStr = String(isoDate);
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
     return `${parts[2]}-${parts[1]}-${parts[0]}`;
 }
 
@@ -141,11 +233,11 @@ function playSound(type) {
         oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
         oscillator.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
         oscillator.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.2);
-        oscillator.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.3);
-        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        oscillator.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.3);
+        gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
         oscillator.start(audioCtx.currentTime);
-        oscillator.stop(audioCtx.currentTime + 0.5);
+        oscillator.stop(audioCtx.currentTime + 0.3);
     } else if (type === 'pleasant') {
         oscillator.type = 'sine';
         oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime);
@@ -154,6 +246,53 @@ function playSound(type) {
         gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.05);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
         oscillator.start(audioCtx.currentTime);
-        oscillator.stop(audioCtx.currentTime + 0.6);
+        oscillator.stop(audioCtx.currentTime + 0.3);
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof translateDOM === 'function') {
+        translateDOM();
+    }
+});
+
+// --- File System Storage (IndexedDB) ---
+const dbName = 'FinancialGuardianDB';
+const storeName = 'Handles';
+
+function initDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(dbName, 1);
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(storeName)) {
+                db.createObjectStore(storeName);
+            }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+window.saveDirectoryHandle = async function(handle) {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
+        const request = store.put(handle, 'invoiceDir');
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+};
+
+window.getDirectoryHandle = async function() {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const request = store.get('invoiceDir');
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+};
+
