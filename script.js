@@ -273,6 +273,7 @@ document.addEventListener('keydown', (e) => {
 
 // --- Initialization & Notifications ---
 btnEnterApp.addEventListener('click', () => {
+    localStorage.setItem('fg_tos_accepted', 'true');
     welcomeOverlay.style.display = 'none';
     
     if (!localStorage.getItem('fg_mode') && !localStorage.getItem('fg_tour_seen')) {
@@ -290,6 +291,23 @@ function proceedWithNotifications() {
 
     // Students don't get pending payment popups
     if (isStudent) {
+        init();
+        return;
+    }
+
+    const wasPro = localStorage.getItem('fg_was_pro') === 'true';
+    const isNowPro = isProUser();
+    localStorage.setItem('fg_was_pro', isNowPro ? 'true' : 'false');
+
+    if (wasPro && !isNowPro) {
+        init();
+        if (typeof showPaywall === 'function') {
+            showPaywall('Pro Subscription / Trial Expired');
+        }
+        return;
+    }
+
+    if (!isNowPro) {
         init();
         return;
     }
@@ -409,6 +427,10 @@ function init() {
 
 // --- Presets (with price) ---
 function renderPresets() {
+    if (!isProUser()) {
+        presetChips.innerHTML = '<div style="color:var(--neon-blue);cursor:pointer;padding:0.5rem;border:1px dashed var(--neon-blue);border-radius:4px;text-align:center;font-size:0.9rem;" onclick="showPaywall(\'Quick Presets\')">🔒 Quick Presets are a Pro Feature. Click to Upgrade!</div>';
+        return;
+    }
     presetChips.innerHTML = '';
     const topDescs = getTopDescriptions(3);
     const allPresetNames = presets.map(p => (typeof p === 'object') ? p.name : p);
@@ -440,7 +462,12 @@ function renderPresets() {
     });
 }
 
-addPresetBtn.addEventListener('click', () => {
+addPresetBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!isProUser()) {
+        showPaywall('Create Custom Presets');
+        return;
+    }
     const val = newPresetInput.value.trim();
     const price = parseFloat(newPresetPrice.value) || null;
     const type = document.getElementById('newPresetType')?.value || null;
@@ -499,9 +526,17 @@ function saveTransaction(record) {
 
 form.addEventListener('submit', function(e) {
     e.preventDefault();
+    const type = transType.value;
+    
+    if (type === 'pending' && !isProUser()) {
+        const pendingCount = transactions.filter(t => t.type === 'pending').length;
+        if (pendingCount >= 3) {
+            showPaywall('Unlimited Pending Transactions (Free tier is limited to 3)');
+            return;
+        }
+    }
     const date = document.getElementById('transDate').value;
     const time = new Date().toLocaleTimeString();
-    const type = transType.value;
     const qty = parseInt(transQty.value) || 1;
     const unitPrice = parseFloat(transUnitPrice.value);
     const amount = qty * unitPrice;
@@ -549,16 +584,27 @@ currencyInput.addEventListener('input', function(e) {
 
 let gstInvoiceItems = [];
 
-function showGstInvoiceForm(triggerRecord) {
-    const profile = getProfile();
-    gstInvoiceItems = [{
-        desc: triggerRecord.desc,
-        qty: triggerRecord.qty || 1,
-        unitPrice: triggerRecord.unitPrice || triggerRecord.amount,
-        gstRate: detectGstRate(triggerRecord.desc),
-        discount: 0
-    }];
-    renderGstForm(profile);
+function showGstInvoiceForm(transData = null) {
+    if (!isProUser()) {
+        const gstCount = (localStorage.getItem('fg_gst_count') ? parseInt(localStorage.getItem('fg_gst_count')) : 0);
+        if (gstCount >= 10) {
+            showPaywall('Unlimited GST Invoices (Free tier is limited to 10)');
+            return;
+        }
+    }
+
+    if (transData) {
+        pendingTransData = transData;
+        gstInvoiceItems = [{
+            desc: transData.desc,
+            hsn: '',
+            qty: parseFloat(transData.qty) || 1,
+            unitPrice: parseFloat(transData.unitPrice) || 0,
+            gstRate: detectGstRate(transData.desc),
+            discount: 0
+        }];
+    }
+    renderGstForm(getProfile());
 }
 
 function renderGstForm(profile) {
@@ -566,8 +612,9 @@ function renderGstForm(profile) {
     gstInvoiceItems.forEach((item, i) => {
         itemsHtml += `
         <div style="border:1px solid var(--panel-border);border-radius:8px;padding:0.8rem;margin-bottom:0.8rem;">
-            <div class="form-row" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:0.5rem;">
+            <div class="form-row" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:0.5rem;">
                 <div class="form-group"><label>Product</label><input type="text" value="${item.desc}" onchange="gstInvoiceItems[${i}].desc=this.value; gstInvoiceItems[${i}].gstRate=detectGstRate(this.value); renderGstForm(getProfile())"></div>
+                <div class="form-group"><label>HSN/SAC</label><input type="text" value="${item.hsn || ''}" onchange="gstInvoiceItems[${i}].hsn=this.value"></div>
                 <div class="form-group"><label>Qty</label><input type="number" value="${item.qty}" min="1" onchange="gstInvoiceItems[${i}].qty=parseInt(this.value)||1"></div>
                 <div class="form-group"><label>Unit Price</label><input type="number" value="${item.unitPrice}" min="0" step="0.01" onchange="gstInvoiceItems[${i}].unitPrice=parseFloat(this.value)||0"></div>
             </div>
@@ -586,7 +633,7 @@ function renderGstForm(profile) {
     const presetCps = presets.map(p => {
         const name = typeof p === 'object' ? p.name : p;
         const price = (typeof p === 'object') ? p.price : null;
-        return `<span style="cursor:pointer;padding:0.2rem 0.6rem;background:var(--panel-border);border-radius:20px;font-size:0.8rem;margin:0.2rem;display:inline-block;" onclick="gstInvoiceItems.push({desc:'${name}',qty:1,unitPrice:${price||0},gstRate:detectGstRate('${name}'),discount:0});renderGstForm(getProfile())">${name}${price?' ('+formatMoney(price)+')':''}</span>`;
+        return `<span style="cursor:pointer;padding:0.2rem 0.6rem;background:var(--panel-border);border-radius:20px;font-size:0.8rem;margin:0.2rem;display:inline-block;" onclick="gstInvoiceItems.push({desc:'${name}',hsn:'',qty:1,unitPrice:${price||0},gstRate:detectGstRate('${name}'),discount:0});renderGstForm(getProfile())">${name}${price?' ('+formatMoney(price)+')':''}</span>`;
     }).join('');
 
     const newInvNo = `INV-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${new Date().toTimeString().slice(0,8).replace(/:/g,'')}`;
@@ -605,7 +652,7 @@ function renderGstForm(profile) {
             <div style="margin-bottom:0.5rem;margin-top:1rem;"><strong style="font-size:0.8rem;">Presets:</strong> ${presetCps || '<span style="color:var(--text-muted);font-size:0.8rem;">No presets saved</span>'}</div>
             <h3 style="color:var(--neon-blue);font-size:0.9rem;margin:0.5rem 0 0.5rem;">ITEMS</h3>
             ${itemsHtml}
-            <button class="btn-icon" style="width:100%;margin-bottom:1rem;" onclick="gstInvoiceItems.push({desc:'',qty:1,unitPrice:0,gstRate:18,discount:0});renderGstForm(getProfile())">+ Add Another Product</button>
+            <button class="btn-icon" style="width:100%;margin-bottom:1rem;" onclick="gstInvoiceItems.push({desc:'',hsn:'',qty:1,unitPrice:0,gstRate:18,discount:0});renderGstForm(getProfile())">+ Add Another Product</button>
             <div class="form-group"><label>Invoice No</label><input type="text" id="gstInvoiceNo" value="${newInvNo}"></div>
         </div>
         <div class="modal-actions">
@@ -637,7 +684,7 @@ window.generateFinalInvoice = function() {
         totalTax += gstAmt;
         totalDiscount += discAmt;
         rowsHtml += `<tr>
-            <td>${i+1}</td><td>${item.desc}</td><td>${item.qty}</td>
+            <td>${i+1}</td><td>${item.desc}</td><td>${item.hsn || '-'}</td><td>${item.qty}</td>
             <td>${formatMoney(item.unitPrice)}</td><td>${formatMoney(discAmt)}</td>
             <td>${item.gstRate}%</td><td>${formatMoney(cgst)}</td><td>${formatMoney(sgst)}</td>
             <td><strong>${formatMoney(itemTotal)}</strong></td></tr>`;
@@ -669,7 +716,7 @@ window.generateFinalInvoice = function() {
         <p><strong>Invoice No:</strong> ${invoiceNo} &nbsp;|&nbsp; <strong>Date:</strong> ${today}</p>
         <p><strong>Bill To:</strong> ${buyerName} ${buyerGst ? '&nbsp;|&nbsp; <strong>GSTIN:</strong> ' + buyerGst.toUpperCase() : ''}</p>
         <table>
-            <thead><tr><th>#</th><th>Description</th><th>Qty</th><th>Unit Price</th><th>Discount</th><th>GST%</th><th>CGST</th><th>SGST</th><th>Total</th></tr></thead>
+            <thead><tr><th>#</th><th>Description</th><th>HSN/SAC</th><th>Qty</th><th>Unit Price</th><th>Discount</th><th>GST%</th><th>CGST</th><th>SGST</th><th>Total</th></tr></thead>
             <tbody>${rowsHtml}</tbody>
         </table>
         ${totalDiscount > 0 ? '<p><strong>Total Discount:</strong> ' + formatMoney(totalDiscount) + '</p>' : ''}
@@ -785,6 +832,9 @@ function saveGstHistory(invoiceEl, saveMode) {
         htmlContent: invoiceEl.innerHTML
     });
     localStorage.setItem('fg_gst_history', JSON.stringify(history));
+    
+    let gstCount = (localStorage.getItem('fg_gst_count') ? parseInt(localStorage.getItem('fg_gst_count')) : 0);
+    localStorage.setItem('fg_gst_count', gstCount + 1);
 }
 
 window.closeGstModal = function() { 
@@ -1009,7 +1059,16 @@ function generateVeteranAdvice(rev, exp, net, daysTracked) {
 }
 
 function updateChart(dailyData) {
-    const ctx = document.getElementById('financialChart').getContext('2d');
+    const chartContainer = document.getElementById('financialChart');
+    const pieContainer = document.getElementById('expensePieChart');
+    
+    if (!isProUser()) {
+        if(chartContainer) chartContainer.parentElement.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.02);border:1px dashed var(--neon-blue);border-radius:8px;cursor:pointer;flex-direction:column;" onclick="showPaywall(\'Financial Graphs & Analytics\')"><span style="font-size:2rem;margin-bottom:0.5rem;">📊</span><span style="color:var(--neon-blue);">Pro Analytics Locked</span></div>';
+        if(pieContainer) pieContainer.parentElement.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.02);border:1px dashed var(--neon-blue);border-radius:8px;cursor:pointer;flex-direction:column;" onclick="showPaywall(\'Expense Pie Chart\')"><span style="font-size:2rem;margin-bottom:0.5rem;">🥧</span><span style="color:var(--neon-blue);">Pro Analytics Locked</span></div>';
+        return;
+    }
+
+    const ctx = chartContainer.getContext('2d');
     const dates = Object.keys(dailyData).sort();
     const revData = [], expData = [], netTrend = [];
     let cumulative = 0;

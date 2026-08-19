@@ -384,6 +384,10 @@ function getLanguage() {
 }
 
 function setLanguage(lang) {
+    if (lang === 'hi' && typeof isProUser === 'function' && !isProUser()) {
+        if (typeof showPaywall === 'function') showPaywall('Hindi Language Support');
+        return;
+    }
     localStorage.setItem('fg_lang', lang);
     translateDOM();
 }

@@ -75,7 +75,24 @@
             <button class="modal-close" onclick="this.closest('.overlay').style.display='none'">×</button>
             <h2 data-i18n="welcome_back_title">Welcome Back</h2>
             <p data-i18n="welcome_back_desc">Click below to open your dashboard and check for pending payments.</p>
-            <button id="btnEnterApp" class="btn-primary" data-i18n="btn_enter_app">Enter Dashboard</button>
+            
+            <div id="tosWarningDiv" style="background: rgba(255, 69, 58, 0.1); border-left: 4px solid var(--neon-red); padding: 0.8rem; margin: 1rem 0; font-size: 0.85rem; text-align: left; border-radius: 4px;">
+                <strong>⚠️ IMPORTANT:</strong> Your financial data is stored <em>locally</em> on this device. If you clear your browser history, your data will be permanently wiped. You MUST export backups regularly.
+            </div>
+
+            <div id="tosCheckboxDiv" style="display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 1.5rem; text-align: left; font-size: 0.85rem; color: var(--text-muted);">
+                <input type="checkbox" id="tosCheckbox" onchange="document.getElementById('btnEnterApp').disabled = !this.checked;" style="margin-top: 0.2rem;">
+                <label for="tosCheckbox">I have read and agree to the <a href="legal.html" target="_blank" style="color: var(--neon-blue);">Terms of Service</a> and <a href="legal.html" target="_blank" style="color: var(--neon-blue);">Privacy Policy</a>.</label>
+            </div>
+
+            <button id="btnEnterApp" class="btn-primary" data-i18n="btn_enter_app" disabled>Enter Dashboard</button>
+            <script>
+                if (localStorage.getItem('fg_tos_accepted') === 'true') {
+                    document.getElementById('tosWarningDiv').style.display = 'none';
+                    document.getElementById('tosCheckboxDiv').style.display = 'none';
+                    document.getElementById('btnEnterApp').disabled = false;
+                }
+            </script>
         </div>
     </div>
 
@@ -380,6 +397,9 @@
 
     <!-- Floating Bottom-Right Buttons -->
     <div class="floating-actions">
+        <a href="hsn_finder.html" class="fab" title="HSN/SAC Code Finder (PRO)" style="background: linear-gradient(135deg, #f59e0b, #d97706); font-size: 1.2rem;">
+            🔍
+        </a>
         <a href="gst_invoices.html" target="_blank" class="fab" title="GST Invoices" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/></svg>
         </a>
@@ -416,7 +436,11 @@
     </div>
 
     <footer class="app-footer">
-        &copy; 2026 Dhruv Gupta-Financial Guardian. All rights reserved
+        <div>&copy; 2026 Dhruv Gupta-Financial Guardian. All rights reserved</div>
+        <div style="margin-top: 0.5rem; font-size: 0.8rem;">
+            <a href="legal.html" style="color: var(--text-muted); text-decoration: none; margin: 0 0.5rem;">Terms & Privacy</a> |
+            <a href="legal.html" style="color: var(--text-muted); text-decoration: none; margin: 0 0.5rem;">Licenses</a>
+        </div>
     </footer>
 
     <script src="translations.js"></script>

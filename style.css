@@ -204,10 +204,16 @@ button {
     box-shadow: 0 0 15px var(--accent-glow);
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
     background: #2563eb;
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
     transform: translateY(-2px);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
 }
 
 .btn-danger {

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HSN Code Finder - Financial Guardian</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-mode" style="padding: 1rem; max-width: 800px; margin: auto;">
+
+    <header class="app-header" style="margin-bottom: 2rem;">
+        <div>
+            <h1 class="glow-text">HSN/SAC Finder 👑</h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Pro Database of Goods and Services Tax Codes</p>
+        </div>
+        <a href="index.html" class="btn-primary" style="background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue); text-decoration: none; padding: 0.5rem 1rem;">Back</a>
+    </header>
+
+    <div class="glass-panel" style="padding: 1.5rem; text-align: center; margin-bottom: 2rem;">
+        <h2 style="margin-bottom: 1rem;">Select Your Turnover</h2>
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap;">
+            <label style="cursor: pointer; background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; flex: 1; border: 1px solid var(--panel-border); min-width: 200px;" id="lblBelow5">
+                <input type="radio" name="turnover" value="below5" checked onchange="updateSearchMode()">
+                <strong style="display: block; margin-top: 0.5rem;">Below 5 Cr</strong>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">4-Digit HSN Codes (B2B Only)</span>
+            </label>
+            <label style="cursor: pointer; background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; flex: 1; border: 1px solid var(--panel-border); min-width: 200px;" id="lblAbove5">
+                <input type="radio" name="turnover" value="above5" onchange="updateSearchMode()">
+                <strong style="display: block; margin-top: 0.5rem;">Above 5 Cr</strong>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">6-Digit HSN Codes Required</span>
+            </label>
+        </div>
+
+        <input type="text" id="hsnSearch" placeholder="Search by Commodity Name or Type..." style="width: 100%; padding: 1rem; font-size: 1.1rem; border: 2px solid var(--neon-blue); border-radius: 8px; background: rgba(0,0,0,0.3); color: #fff; box-sizing: border-box;">
+    </div>
+
+    <div id="resultsContainer" style="display: flex; flex-direction: column; gap: 1rem; padding-bottom: 4rem;">
+        <!-- Results injected here -->
+    </div>
+
+    <script src="translations.js"></script>
+    <script src="shared.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof isProUser === 'function' && !isProUser()) {
+                alert("HSN Finder is a Premium Feature. Please unlock Pro to access this database.");
+                window.location.href = 'index.html';
+                return;
+            }
+            renderResults('');
+        });
+
+        const hsnData = [
+            { name: "Live Animals, Animal Products", code4: "0100", code6: "010000" },
+            { name: "Dairy produce, birds' eggs, natural honey", code4: "0400", code6: "040000" },
+            { name: "Coffee, Tea, Maté and Spices", code4: "0900", code6: "090000" },
+            { name: "Cereals (Wheat, Rice, etc.)", code4: "1000", code6: "100000" },
+            { name: "Sugar and sugar confectionery", code4: "1700", code6: "170000" },
+            { name: "Cocoa and cocoa preparations (Chocolate)", code4: "1800", code6: "180000" },
+            { name: "Mineral fuels, mineral oils (Coal, Petroleum)", code4: "2700", code6: "270000" },
+            { name: "Pharmaceutical products", code4: "3000", code6: "300000" },
+            { name: "Plastics and articles thereof", code4: "3900", code6: "390000" },
+            { name: "Articles of apparel and clothing accessories", code4: "6200", code6: "620000" },
+            { name: "Footwear, gaiters and the like", code4: "6400", code6: "640000" },
+            { name: "Articles of iron or steel", code4: "7300", code6: "730000" },
+            { name: "Nuclear reactors, boilers, machinery (Electronics)", code4: "8400", code6: "840000" },
+            { name: "Vehicles other than railway (Cars, Bikes)", code4: "8700", code6: "870000" },
+            { name: "Furniture, bedding, mattresses", code4: "9400", code6: "940000" },
+        ];
+
+        document.getElementById('hsnSearch').addEventListener('input', (e) => {
+            renderResults(e.target.value.toLowerCase());
+        });
+
+        function updateSearchMode() {
+            renderResults(document.getElementById('hsnSearch').value.toLowerCase());
+        }
+
+        function renderResults(query) {
+            const container = document.getElementById('resultsContainer');
+            const mode = document.querySelector('input[name="turnover"]:checked').value;
+            
+            document.getElementById('lblBelow5').style.borderColor = mode === 'below5' ? 'var(--neon-blue)' : 'var(--panel-border)';
+            document.getElementById('lblAbove5').style.borderColor = mode === 'above5' ? 'var(--neon-blue)' : 'var(--panel-border)';
+
+            let filtered = hsnData.filter(item => item.name.toLowerCase().includes(query) || item.code4.includes(query) || item.code6.includes(query));
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="glass-panel" style="text-align:center;color:var(--text-muted);">No matching HSN codes found.</div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(item => `
+                <div class="glass-panel" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <h3 style="margin-bottom: 0.5rem; color: #fff;">${item.name}</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">Category / Commodity Type</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="display: inline-block; padding: 0.5rem 1rem; border-radius: 6px; background: rgba(59, 130, 246, 0.1); border: 1px dashed var(--neon-blue); font-family: monospace; font-size: 1.2rem; font-weight: bold; color: var(--neon-blue); letter-spacing: 2px;">
+                            ${mode === 'below5' ? item.code4 : item.code6}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

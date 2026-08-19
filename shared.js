@@ -296,3 +296,131 @@ window.getDirectoryHandle = async function() {
     });
 };
 
+// ==========================================
+// PRO ENGINE
+// ==========================================
+const MASTER_KEY = "DHRUV-VIP-2026"; // Universal lifetime free premium key
+
+window.isProUser = function() {
+    // 1. Master Key Check
+    if (localStorage.getItem('fg_pro_master') === MASTER_KEY) return true;
+
+    // 2. Passcode Check
+    const activePasscode = localStorage.getItem('fg_pro_passcode');
+    if (activePasscode) {
+        if (activePasscode.startsWith('PRO-')) {
+            const parts = activePasscode.split('-');
+            if (parts.length === 3) {
+                const tsOrDate = parts[1];
+                const hash = parts[2];
+                const today = new Date();
+                
+                // Monthly Code Check (YYYYMM)
+                if (tsOrDate.length === 6) {
+                    const pad = n => n.toString().padStart(2, '0');
+                    const monthStr = today.getFullYear() + pad(today.getMonth() + 1);
+                    if (tsOrDate === monthStr && hash === btoa(today.getFullYear() + '-' + pad(today.getMonth() + 1)).slice(0, 6).toUpperCase()) {
+                        return true;
+                    }
+                } 
+                // Daily Code Check (Unix Timestamp)
+                else if (tsOrDate.length >= 12 && !isNaN(tsOrDate)) {
+                    const ts = parseInt(tsOrDate);
+                    const tsDateObj = new Date(ts);
+                    const tsDate = tsDateObj.getFullYear() + '-' + tsDateObj.getMonth() + '-' + tsDateObj.getDate();
+                    const todayDate = today.getFullYear() + '-' + today.getMonth() + '-' + today.getDate();
+                    
+                    if (tsDate === todayDate && hash === btoa(tsOrDate).slice(0, 6).toUpperCase()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        localStorage.removeItem('fg_pro_passcode'); // Expired or Invalid
+    }
+    
+    // 3. Trial Check
+    const trialStart = parseInt(localStorage.getItem('fg_trial_start'));
+    if (trialStart) {
+        const now = Date.now();
+        const trialDuration = 3 * 24 * 60 * 60 * 1000;
+        if (now - trialStart < trialDuration) {
+            return true;
+        }
+    }
+    
+    return false;
+};
+
+window.startFreeTrial = function() {
+    if (!localStorage.getItem('fg_trial_start')) {
+        localStorage.setItem('fg_trial_start', Date.now().toString());
+        alert("3-Day Free Trial Activated! Enjoy the Pro features.");
+        window.location.reload();
+    } else {
+        alert("Your free trial has already expired.");
+    }
+};
+
+window.validatePasscode = function(code) {
+    code = code.trim().toUpperCase();
+    if (code === MASTER_KEY) {
+        localStorage.setItem('fg_pro_master', MASTER_KEY);
+        alert("Master Key Accepted! Lifetime Pro unlocked.");
+        window.location.reload();
+        return;
+    }
+    
+    // Temporarily save to test with isProUser
+    localStorage.setItem('fg_pro_passcode', code);
+    
+    if (isProUser()) {
+        alert("Pro Passcode Accepted! Thank you for upgrading.");
+        window.location.reload();
+    } else {
+        localStorage.removeItem('fg_pro_passcode');
+        alert("Invalid or Expired Passcode. Please check and try again.");
+    }
+};
+
+window.showPaywall = function(featureName) {
+    const paywall = document.getElementById('paywallOverlay');
+    if (paywall) {
+        document.getElementById('paywallFeatureName').innerText = featureName;
+        paywall.style.display = 'flex';
+    } else {
+        alert(`This is a Pro feature: ${featureName}. Please upgrade to access it.`);
+    }
+};
+
+// Inject Paywall Modal dynamically
+document.addEventListener('DOMContentLoaded', () => {
+    if (!document.getElementById('paywallOverlay')) {
+        const pwHtml = `
+        <div id="paywallOverlay" class="overlay" style="display: none; z-index: 9999;">
+            <div class="modal glass-panel" style="position: relative; max-width: 450px; text-align: center;">
+                <button class="modal-close" onclick="this.closest('.overlay').style.display='none'">×</button>
+                <h2 style="color: var(--neon-blue); margin-bottom: 0.5rem; font-size: 1.5rem;">👑 Premium Feature</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">You need a Pro Pass to access <strong id="paywallFeatureName">this feature</strong>.</p>
+                
+                <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Option 1: Free Trial</h3>
+                    <button class="btn-primary" style="background: var(--neon-green); margin-top: 0.5rem;" onclick="startFreeTrial()">Start 3-Day Free Trial</button>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.8rem;">Warning: Clearing your browser cache will delete your financial data and reset your trial.</p>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px;">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Option 2: Enter Pro Passcode</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4;">
+                        Get a Daily Code instantly by paying via our <a href="#" style="color:var(--neon-blue);">Razorpay Link</a>.<br>
+                        For Monthly Passes, pay and email <strong>dhruvgupta1742@gmail.com</strong> to receive your code.
+                    </p>
+                    <input type="text" id="paywallPasscode" placeholder="e.g. PRO-20260819-XXXX" style="text-align: center; font-weight: bold; letter-spacing: 1px; margin-bottom: 0.5rem; background: rgba(0,0,0,0.2);">
+                    <button class="btn-primary" style="margin-top: 0.5rem;" onclick="validatePasscode(document.getElementById('paywallPasscode').value)">Unlock App</button>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', pwHtml);
+    }
+});
