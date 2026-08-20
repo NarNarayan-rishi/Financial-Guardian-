@@ -139,6 +139,7 @@
                 <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.3rem;">Changes which features appear on your dashboard.</p>
             </div>
 
+
             <!-- DATA MANAGEMENT -->
             <h3 class="section-title">Data Management</h3>
             <div class="form-row" style="margin-bottom:1rem;">
@@ -306,16 +307,34 @@
                 if (typeof showPaywall === 'function') showPaywall('Export Data Backup');
                 return;
             }
-            const data = {};
+            const backupData = {};
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                if (key.startsWith('fg_')) data[key] = localStorage.getItem(key);
+                if (key.startsWith('fg_')) backupData[key] = localStorage.getItem(key);
             }
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
+            const dataString = JSON.stringify(backupData, null, 2);
+            const fileName = 'FinancialGuardian_Backup_' + new Date().toISOString().split('T')[0] + '.json';
+            
+            try {
+                const blob = new Blob([dataString], {type: 'application/json'});
+                const file = new File([blob], fileName, { type: 'application/json' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Data Backup',
+                        text: 'My Financial Guardian Backup File'
+                    });
+                    return;
+                }
+            } catch (e) {
+                console.log("Web Share API failed, falling back to direct download.", e);
+            }
+
+            const fallbackBlob = new Blob([dataString], {type: 'application/json'});
+            const url = URL.createObjectURL(fallbackBlob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'FinancialGuardian_Backup_' + new Date().toISOString().split('T')[0] + '.json';
+            a.download = fileName;
             a.click();
             URL.revokeObjectURL(url);
         });

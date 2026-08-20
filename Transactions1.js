@@ -259,13 +259,31 @@ window.printSimpleInvoice = function() {
 }
 
 // --- Exports ---
-btnExportCsv.addEventListener('click', () => {
+btnExportCsv.addEventListener('click', async () => {
     if (transactions.length === 0) return alert("No transactions to export.");
-    let csvContent = "data:text/csv;charset=utf-8,Date,Time,Type,Description,Qty,Unit Price,Amount,Status,Expected Date,Invoice No,GST Amt,Buyer\n";
+    let rawCsv = "Date,Time,Type,Description,Qty,Unit Price,Amount,Status,Expected Date,Invoice No,GST Amt,Buyer\n";
     transactions.forEach(t => {
-        csvContent += `${formatDateDisplay(t.date)},${t.time||''},${t.type},"${t.desc.replace(/"/g, '""')}",${t.qty||1},${t.unitPrice||t.amount},${t.amount},${t.status||''},${t.expectedDate?formatDateDisplay(t.expectedDate):''},${t.invoiceNo||''},${t.gstAmt||''},"${(t.buyerName||'').replace(/"/g, '""')}"\n`;
+        rawCsv += `${formatDateDisplay(t.date)},${t.time||''},${t.type},"${t.desc.replace(/"/g, '""')}",${t.qty||1},${t.unitPrice||t.amount},${t.amount},${t.status||''},${t.expectedDate?formatDateDisplay(t.expectedDate):''},${t.invoiceNo||''},${t.gstAmt||''},"${(t.buyerName||'').replace(/"/g, '""')}"\n`;
     });
-    const encodedUri = encodeURI(csvContent);
+    
+    // Try native sharing first (Fixes export in Android APK WebViews)
+    try {
+        const blob = new Blob([rawCsv], { type: 'text/csv' });
+        const file = new File([blob], 'financial_guardian_ledger.csv', { type: 'text/csv' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                files: [file],
+                title: 'Ledger Export',
+                text: 'Here is my exported ledger data.'
+            });
+            return;
+        }
+    } catch (e) {
+        console.log("Web Share API failed, falling back to direct download.", e);
+    }
+
+    // Fallback to standard web download for PC browsers
+    const encodedUri = "data:text/csv;charset=utf-8," + encodeURIComponent(rawCsv);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", "financial_guardian_ledger.csv");

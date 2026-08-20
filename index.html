@@ -53,9 +53,13 @@
     </div>
     
     <!-- Mode Indicator Button -->
-    <div style="position: fixed; top: 4.8rem; right: 1.1rem; z-index: 1000;">
+    <div style="position: fixed; top: 4.8rem; right: 1.1rem; z-index: 1000; display: flex; flex-direction: column; gap: 0.8rem;">
         <button id="quickModeBtn" onclick="cycleQuickMode()" class="btn-icon" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); font-size: 1.4rem; padding: 0; width: 42px; height: 42px; border: 1px solid var(--panel-border); box-shadow: 0 4px 6px rgba(0,0,0,0.3); border-radius: 50%; transition: all 0.3s; display: flex; align-items: center; justify-content: center;" title="Business Mode (Click to switch)">
             🏢
+        </button>
+        
+        <button id="shareAppBtn" onclick="shareWebApp()" class="btn-icon" style="background: rgba(16, 185, 129, 0.15); backdrop-filter: blur(5px); font-size: 1.2rem; padding: 0; width: 42px; height: 42px; border: 1px solid rgba(16, 185, 129, 0.5); border-radius: 50%; transition: all 0.3s; display: flex; align-items: center; justify-content: center;" title="Share App">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--neon-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
         </button>
     </div>    <!-- Language Overlay -->
     <div id="langOverlay" class="overlay" style="display: none; z-index: 2500;">
@@ -438,6 +442,25 @@
             <a href="legal.html" style="color: var(--text-muted); text-decoration: none; margin: 0 0.5rem;">Licenses</a>
         </div>
     </footer>
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="overlay" style="display: none; z-index: 3000;">
+        <div class="modal glass-panel" style="max-width: 450px; text-align: left; position: relative;">
+            <button class="modal-close" onclick="document.getElementById('shareModal').style.display='none'">×</button>
+            <h2 style="color: var(--neon-green); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                Share Financial Guardian
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Send this message to other business owners to help them track their finances offline!</p>
+            
+            <textarea id="shareTextContent" style="width: 100%; height: 120px; padding: 0.8rem; background: rgba(0,0,0,0.3); border: 1px solid var(--panel-border); color: #fff; border-radius: 8px; resize: none; font-size: 0.9rem; font-family: inherit;" readonly></textarea>
+            
+            <div class="modal-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: flex-end;">
+                <button class="btn-primary" onclick="copyShareText()" style="background: var(--neon-green); color: #000; font-weight: bold; flex: 1;">📋 Copy to Clipboard</button>
+                <button class="btn-primary" onclick="document.getElementById('shareModal').style.display='none'" style="background: rgba(255,255,255,0.1); flex: 1;">Close</button>
+            </div>
+        </div>
+    </div>
 
     <script src="translations.js"></script>
     <script src="shared.js"></script>

@@ -861,6 +861,36 @@ const tourSteps = [
 window.startDashboardTour = function() {
     startTour(tourSteps);
 };
+
+window.shareWebApp = async function() {
+    const shareData = {
+        title: 'Financial Guardian',
+        text: 'Take control of your business finances entirely offline! 🚀\nFinancial Guardian is a private, lightning-fast app that tracks your daily ledger, generates professional GST invoices, and protects your data—no servers, no subscriptions.\nTry it now and boost your profit margins today! 👇',
+        url: window.location.href
+    };
+    
+    // Always fall back to the reliable custom modal for cross-platform support
+    const shareText = `${shareData.text}\n\n${shareData.url}`;
+    const modal = document.getElementById('shareModal');
+    const textarea = document.getElementById('shareTextContent');
+    
+    if (modal && textarea) {
+        textarea.value = shareText;
+        modal.style.display = 'flex';
+    }
+};
+
+window.copyShareText = function() {
+    const textarea = document.getElementById('shareTextContent');
+    if (textarea) {
+        navigator.clipboard.writeText(textarea.value).then(() => {
+            alert("Share message & link copied to clipboard!");
+            document.getElementById('shareModal').style.display = 'none';
+        }).catch(err => {
+            alert("Unable to copy to clipboard automatically. Please select the text and copy it manually.");
+        });
+    }
+};
 // ================= DASHBOARD =================
 
 function updateDashboard() {
