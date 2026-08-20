@@ -37,6 +37,7 @@
                 <p id="profileSubtitle" style="color:#9ba3af;"></p>
             </div>
             <div style="display:flex;gap:1rem;align-items:center;flex-wrap:nowrap;white-space:nowrap;">
+                <div id="planBadge" style="padding: 0.3rem 0.8rem; border-radius: 20px; font-weight: 700; font-size: 0.8rem; background: rgba(155, 163, 175, 0.15); color: var(--text-muted);">Free Plan</div>
                 <span class="save-status" id="saveStatus">&#10003; Saved</span>
                 <div class="setting-group font-controls" style="display: flex; align-items: center; gap: 0.2rem;">
                     <button id="decreaseFont" class="btn-icon" aria-label="Decrease Font Size" style="padding: 0.3rem 0.5rem; font-size: 0.8rem;">A-</button>
@@ -351,6 +352,23 @@
                 localStorage.setItem('fg_tour_profile', 'true');
             }
         }
+        // Update Plan Badge
+        const planBadge = document.getElementById('planBadge');
+        if (typeof getCurrentPlanName === 'function' && planBadge) {
+            const planName = getCurrentPlanName();
+            planBadge.innerText = planName === 'Free' ? 'Free Plan' : (planName + (planName === 'Trial' ? ' (Active)' : ''));
+            if (planName === 'Free') {
+                planBadge.style.background = 'rgba(155, 163, 175, 0.15)';
+                planBadge.style.color = 'var(--text-muted)';
+            } else if (planName === 'Trial') {
+                planBadge.style.background = 'rgba(234, 179, 8, 0.15)';
+                planBadge.style.color = 'var(--neon-yellow)';
+            } else {
+                planBadge.style.background = 'rgba(16, 185, 129, 0.2)';
+                planBadge.style.color = 'var(--neon-green)';
+            }
+        }
+        
     </script>
 </body>
 </html>

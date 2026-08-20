@@ -301,6 +301,49 @@ window.getDirectoryHandle = async function() {
 // ==========================================
 const MASTER_KEY = "DHRUV-VIP-2026"; // Universal lifetime free premium key
 
+window.getCurrentPlanName = function() {
+    if (localStorage.getItem('fg_pro_master') === MASTER_KEY) return 'Lifetime VIP';
+
+    const activePasscode = localStorage.getItem('fg_pro_passcode');
+    if (activePasscode && activePasscode.startsWith('PRO-')) {
+        const parts = activePasscode.split('-');
+        if (parts.length === 3) {
+            const tsOrDate = parts[1];
+            const hash = parts[2];
+            const today = new Date();
+            
+            if (tsOrDate.length === 6) {
+                const pad = n => n.toString().padStart(2, '0');
+                const monthStr = today.getFullYear() + pad(today.getMonth() + 1);
+                if (tsOrDate === monthStr && hash === btoa(today.getFullYear() + '-' + pad(today.getMonth() + 1)).slice(0, 6).toUpperCase()) {
+                    return 'Monthly Pass';
+                }
+            } 
+            else if (tsOrDate.length >= 12 && !isNaN(tsOrDate)) {
+                const ts = parseInt(tsOrDate);
+                const tsDateObj = new Date(ts);
+                const tsDate = tsDateObj.getFullYear() + '-' + tsDateObj.getMonth() + '-' + tsDateObj.getDate();
+                const todayDate = today.getFullYear() + '-' + today.getMonth() + '-' + today.getDate();
+                
+                if (tsDate === todayDate && hash === btoa(tsOrDate).slice(0, 6).toUpperCase()) {
+                    return '1-Day Pass';
+                }
+            }
+        }
+    }
+    
+    const trialStart = parseInt(localStorage.getItem('fg_trial_start'));
+    if (trialStart) {
+        const now = Date.now();
+        const trialDuration = 3 * 24 * 60 * 60 * 1000;
+        if (now - trialStart < trialDuration) {
+            return 'Trial';
+        }
+    }
+    
+    return 'Free';
+};
+
 window.isProUser = function() {
     // 1. Master Key Check
     if (localStorage.getItem('fg_pro_master') === MASTER_KEY) return true;
@@ -411,13 +454,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px;">
-                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Option 2: Enter Pro Passcode</h3>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Option 2: Get a Pro Pass</h3>
                     <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4;">
-                        Get a Daily Code instantly by paying via our <a href="#" style="color:var(--neon-blue);">Razorpay Link</a>.<br>
-                        For Monthly Passes, pay and email <strong>dhruvgupta1742@gmail.com</strong> to receive your code.
+                        Instantly receive your Pro Passcode upon payment.
                     </p>
-                    <input type="text" id="paywallPasscode" placeholder="e.g. PRO-20260819-XXXX" style="text-align: center; font-weight: bold; letter-spacing: 1px; margin-bottom: 0.5rem; background: rgba(0,0,0,0.2);">
-                    <button class="btn-primary" style="margin-top: 0.5rem;" onclick="validatePasscode(document.getElementById('paywallPasscode').value)">Unlock App</button>
+                    
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+                        <a href="https://rzp.io/rzp/MGaXjoK" target="_blank" style="flex: 1; display: block; background: #3366cc; color: white; padding: 0.8rem 0.2rem; border-radius: 6px; text-decoration: none; font-weight: 600; text-align: center; border: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem;">💳 1-Day Pass</a>
+                        <a href="https://rzp.io/rzp/bn6zkXO8" target="_blank" style="flex: 1; display: block; background: var(--neon-blue); color: #111; padding: 0.8rem 0.2rem; border-radius: 6px; text-decoration: none; font-weight: 800; text-align: center; border: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem;">👑 Monthly Pass</a>
+                    </div>
+                    
+                    <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--neon-blue);">Already have a code?</h4>
+                    <input type="text" id="paywallPasscode" placeholder="Enter your Passcode here" style="text-align: center; font-weight: bold; letter-spacing: 1px; margin-bottom: 0.5rem; background: rgba(0,0,0,0.2);">
+                    <button class="btn-primary" style="margin-top: 0.5rem; width: 100%;" onclick="validatePasscode(document.getElementById('paywallPasscode').value)">Unlock App</button>
+                    
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1rem; line-height: 1.4; text-align: center;">
+                        Support: <strong>dhruvgupta1742@gmail.com</strong>
+                    </p>
                 </div>
             </div>
         </div>`;

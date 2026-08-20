@@ -18,6 +18,8 @@ function initLedger() {
         <button class="filter-btn active" data-filter="All">All</button>
         <button class="filter-btn" data-filter="Revenue">Revenue</button>
         <button class="filter-btn" data-filter="Expense">Expense</button>
+        <button class="filter-btn" data-filter="Online">Online</button>
+        <button class="filter-btn" data-filter="Offline">Offline</button>
         <button class="filter-btn" data-filter="FuturePay">Payment to be made</button>
     `;
     if (!isStudent) {
@@ -61,6 +63,8 @@ function renderTable() {
         if (currentFilter === 'All') return true;
         if (currentFilter === 'Revenue' && t.type === 'revenue') return true;
         if (currentFilter === 'Expense' && t.type === 'expense') return true;
+        if (currentFilter === 'Online' && (t.paymentMethod === 'online' || !t.paymentMethod)) return true;
+        if (currentFilter === 'Offline' && t.paymentMethod === 'offline') return true;
         if (currentFilter === 'Pending' && t.type === 'pending') return true;
         if (currentFilter === 'FuturePay' && t.type === 'futurepay') return true;
         return false;
@@ -75,7 +79,15 @@ function renderTable() {
         return (b.id || 0) - (a.id || 0);
     });
     
-    // Group by date
+    // Group by date and calculate daily totals
+    const dailyTotals = {};
+    sorted.forEach(t => {
+        if (!t) return;
+        if (!dailyTotals[t.date]) dailyTotals[t.date] = { rev: 0, exp: 0 };
+        if (t.type === 'revenue' || t.status === 'received') dailyTotals[t.date].rev += t.amount;
+        if (t.type === 'expense' || t.status === 'paid') dailyTotals[t.date].exp += t.amount;
+    });
+
     let lastDate = null;
     
     sorted.forEach(t => {
@@ -83,13 +95,16 @@ function renderTable() {
         // Insert date separator row
         if (t.date !== lastDate) {
             lastDate = t.date;
+            const totals = dailyTotals[t.date];
+            const totalHtml = `<span style="float:right; font-size: 0.85rem; font-weight:normal; letter-spacing: 0;">Rev: <span style="color:var(--neon-green)">${formatMoney(totals.rev)}</span> &nbsp;|&nbsp; Exp: <span style="color:var(--neon-red)">${formatMoney(totals.exp)}</span></span>`;
+            
             const sepRow = document.createElement('tr');
             sepRow.className = 'date-separator';
             sepRow.innerHTML = `
                 <td class="selection-col" style="display:${window.selectionModeActive ? 'table-cell' : 'none'};">
                     <input type="checkbox" class="date-checkbox" data-date="${t.date}" onchange="toggleDateSelection('${t.date}', this.checked)">
                 </td>
-                <td colspan="${window.selectionModeActive ? '8' : '8'}">📅 ${formatDateDisplay(t.date)}</td>
+                <td colspan="${window.selectionModeActive ? '8' : '8'}">📅 ${formatDateDisplay(t.date)} ${totalHtml}</td>
             `;
             ledgerBody.appendChild(sepRow);
         }
@@ -164,6 +179,7 @@ function renderTable() {
             <td>
                 <div>${formatDateDisplay(t.date)}</div>
                 <div style="font-size: 0.8rem; color: var(--text-muted);">${t.time || '--:--'}</div>
+                <div style="font-size: 0.75rem; color: ${t.paymentMethod === 'offline' ? 'var(--neon-yellow)' : 'var(--neon-blue)'}; text-transform: uppercase; margin-top: 0.2rem; font-weight: 600;">${t.paymentMethod === 'offline' ? 'Offline' : 'Online'}</div>
             </td>
             <td>${t.desc}</td>
             <td>${t.qty || 1}</td>

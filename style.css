@@ -306,12 +306,14 @@ button {
 }
 
 .preset-chip {
-    background: rgba(59, 130, 246, 0.15);
-    border: 1px solid rgba(59, 130, 246, 0.3);
-    color: var(--neon-blue);
-    padding: 0.3rem 0.7rem;
+    background: rgba(59, 130, 246, 0.25);
+    border: 1px solid rgba(59, 130, 246, 0.6);
+    color: #e0f2fe;
+    text-shadow: 0 0 2px var(--neon-blue);
+    padding: 0.35rem 0.8rem;
     border-radius: 20px;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
     display: inline-flex;

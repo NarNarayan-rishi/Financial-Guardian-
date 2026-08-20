@@ -852,7 +852,6 @@ const tourSteps = [
     { target: '#quickModeBtn', title: 'Quick Mode Switcher', desc: 'Instantly toggle between Business, Employee, and Student mode. This changes what features and transaction types are available to you.' },
     { target: '.input-section', title: 'Transaction Types', desc: 'Select Revenue (money in), Expense (money out), Payment to be made (you owe money/credit), or Payment yet to receive (someone owes you).' },
     { target: '#payOffline', title: 'Payment Mode', desc: 'Track whether this transaction was done in cash (Offline) or digitally via UPI/Bank (Online).' },
-    { target: '#scanBillBtn', title: 'Scan Handwritten Bills (AI OCR)', desc: 'Click this camera icon to snap a photo of a handwritten bill or price tag. The AI will read the image and automatically extract the price into the field!' },
     { target: '#gstCheckboxRow', title: 'Generate GST Invoice', desc: 'Check this box to instantly build and save a professional GST tax invoice. You can set the Auto-Save folder in your Business Profile.' },
     { target: '.presets-section', title: 'Quick Presets', desc: 'Save time! Your most frequently entered descriptions will show here. Click one to auto-fill the form instantly.' },
     { target: '.accountant-advice', title: "Accountant's Advice", desc: 'Expand this section to read valuable tips and common pitfalls to avoid losing money in your business.' },
@@ -945,7 +944,11 @@ function renderHistory() {
                 else if (t.status === 'loss') statusTag = ' <small style="color:var(--neon-red);">[Loss]</small>';
             }
             const qtyInfo = (t.qty && t.qty > 1) ? ` <small style="opacity:0.7;">(×${t.qty})</small>` : '';
-            item.innerHTML = `<div class="history-details"><p>${t.desc}${qtyInfo}${statusTag}</p><span>${formatDateDisplay(t.date)}</span></div><div class="history-amount">${sign}${formatMoney(t.amount)}</div>`;
+            const modeColor = t.paymentMethod === 'offline' ? 'var(--neon-yellow)' : 'var(--neon-blue)';
+            const modeText = t.paymentMethod === 'offline' ? 'Offline' : 'Online';
+            const modeBadge = `<span style="font-size: 0.7rem; color: ${modeColor}; text-transform: uppercase; font-weight: 600; margin-left: 0.5rem; border: 1px solid ${modeColor}; padding: 0.1rem 0.3rem; border-radius: 4px;">${modeText}</span>`;
+            
+            item.innerHTML = `<div class="history-details"><p>${t.desc}${qtyInfo}${statusTag}</p><span style="display: flex; align-items: center; margin-top: 0.2rem;">${formatDateDisplay(t.date)}${modeBadge}</span></div><div class="history-amount">${sign}${formatMoney(t.amount)}</div>`;
             item.style.cursor = 'pointer';
             item.onclick = () => window.open(`transactions.html#tx-${t.id}`, '_blank');
             historyList.appendChild(item);
@@ -1209,49 +1212,4 @@ window.selectInitialLanguage = function(lang) {
     document.getElementById('welcomeOverlay').style.display = 'flex';
 };
 
-// ================= OCR HANDWRITTEN PRICE SCANNER =================
-window.processOcrImage = async function(input) {
-    if (!input.files || input.files.length === 0) return;
-    const file = input.files[0];
-    const btn = document.getElementById('scanBillBtn');
-    const originalContent = btn.innerHTML;
-    const amountInput = document.getElementById('transUnitPrice');
-    
-    // Set loading state
-    btn.innerHTML = '⏳';
-    btn.disabled = true;
-    
-    try {
-        const result = await Tesseract.recognize(file, 'eng');
-        const text = result.data.text;
-        console.log("OCR Extracted Text:", text);
-        
-        // Find all numbers that look like prices/amounts (e.g., 100, 100.50, 1,000.00)
-        const matches = text.match(/\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?/g);
-        
-        if (matches && matches.length > 0) {
-            // Clean strings, convert to floats, and find the max value
-            const numbers = matches.map(m => parseFloat(m.replace(/,/g, ''))).filter(n => !isNaN(n));
-            if (numbers.length > 0) {
-                const maxAmount = Math.max(...numbers);
-                amountInput.value = maxAmount.toFixed(2);
-                
-                // Show success on button briefly
-                btn.innerHTML = '✅';
-                setTimeout(() => { btn.innerHTML = originalContent; }, 2000);
-            } else {
-                throw new Error("No valid numbers parsed.");
-            }
-        } else {
-            throw new Error("No numbers found in text.");
-        }
-    } catch (e) {
-        console.error("OCR Error:", e);
-        alert("Could not cleanly read a price from this image. Please try again or enter manually.");
-        btn.innerHTML = '❌';
-        setTimeout(() => { btn.innerHTML = originalContent; }, 2000);
-    } finally {
-        btn.disabled = false;
-        input.value = ''; // Reset file input
-    }
-};
+;
