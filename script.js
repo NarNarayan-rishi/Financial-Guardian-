@@ -707,7 +707,7 @@ window.generateFinalInvoice = function() {
          data-total-tax="${totalTax}"
          data-grand-total="${grandTotal}"
          data-date="${new Date().toISOString()}">
-        <h2 style="text-align:center;border:none;margin-bottom:0;">${profile.profCompanyName || 'Your Company Name'}</h2>
+        <h2 style="text-align:center;border:none;margin-bottom:0;">${profile.profCompanyName || profile.profFullName || profile.profOrgName || 'Your Company / Name'}</h2>
         <p style="text-align:center;font-size:0.85rem;margin:0.2rem 0;">${profile.profAddress || 'Address'} | Phone: ${profile.profPhone || ''} | Email: ${profile.profEmail || ''}</p>
         <p style="text-align:center;font-size:0.85rem;margin:0 0 0.5rem;"><strong>GSTIN:</strong> ${(profile.profGstin || 'N/A').toUpperCase()}</p>
         <hr>
@@ -738,7 +738,7 @@ window.generateFinalInvoice = function() {
         <div style="display:flex;justify-content:space-between;margin-top:2rem;">
             <div style="text-align:center;">
                 <br><br><br><br>
-                <p><strong>${profile.profCompanyName || 'Company Name'}</strong></p>
+                <p><strong>${profile.profCompanyName || profile.profFullName || profile.profOrgName || 'Company Name'}</strong></p>
                 <br><br><br><br>
                 <p style="border-top:1px solid #999;padding-top:0.3rem;">Authorised Signatory</p>
             </div>

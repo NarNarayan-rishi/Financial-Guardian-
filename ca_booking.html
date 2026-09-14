@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Guardian | CA Booking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .container { max-width: 600px; margin: 2rem auto; padding: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="container glass-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1 style="color: var(--neon-green); display: flex; align-items: center; margin: 0;"><a href="index.html" style="text-decoration: none; color: var(--text-muted); margin-right: 0.5rem;">←</a> 👨‍💼 Book a CA Consultation</h1>
+            <div style="display: flex; gap: 0.5rem;">
+                <button id="decreaseFont" class="btn-icon" aria-label="Decrease Font Size" style="background: rgba(255,255,255,0.05); padding: 0.3rem 0.6rem; border-radius: 4px;">A-</button>
+                <button id="increaseFont" class="btn-icon" aria-label="Increase Font Size" style="background: rgba(255,255,255,0.05); padding: 0.3rem 0.6rem; border-radius: 4px;">A+</button>
+            </div>
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 2rem; line-height: 1.5; margin-top: -1rem;">Fill out your details below and upload your Excel/CSV sheet. We will automatically generate an email with your data attached to dhruv720gupta@gmail.com.</p>
+        
+        <form id="caForm" onsubmit="handleBooking(event)">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="caName" required>
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="caEmail" required>
+            </div>
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="caPhone" required>
+            </div>
+            <div class="form-group">
+                <label>What do you need help with?</label>
+                <textarea id="caHelp" rows="4" required placeholder="Describe your financial situation or questions..." style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); border: 1px solid var(--panel-border); border-radius: 8px; color: #fff; padding: 0.8rem; font-family: inherit; font-size: 1rem;"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Upload Financial Data / Excel Sheet</label>
+                <input type="file" id="caFile" accept=".csv, .xlsx, .xls">
+                <small id="shareNote" style="color: var(--neon-blue); display: none; margin-top: 0.5rem;">Device supports auto-attachment!</small>
+            </div>
+            
+            <button type="submit" class="btn-primary" style="background: var(--neon-green); color: #000; width: 100%; margin-top: 1rem; font-weight: bold; padding: 1rem;">Book Appointment</button>
+        </form>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="caPaymentModal" class="overlay" style="display:none; z-index: 3000;">
+        <div class="modal glass-panel" style="max-width:500px; position:relative;">
+            <button class="modal-close" onclick="document.getElementById('caPaymentModal').style.display='none'">&#215;</button>
+            <h2 style="color:var(--neon-green); margin-bottom:1rem;">Premium CA Counseling</h2>
+            <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1.5rem;">Please select a counseling package and complete the payment to finalize your booking.</p>
+            
+            <div style="display:flex; flex-direction:column; gap:1rem; margin-bottom: 2rem;">
+                <label style="display:flex; align-items:center; padding: 1rem; border: 1px solid var(--neon-blue); border-radius: 8px; cursor: pointer; background: rgba(59, 130, 246, 0.1);">
+                    <input type="radio" name="caPackage" value="1session" checked style="margin-right: 1rem; transform: scale(1.2);">
+                    <div style="flex:1;">
+                        <div style="font-weight: 600; font-size: 1.1rem;">One-Time Counseling Session</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">Single comprehensive review of your data.</div>
+                    </div>
+                    <div style="font-weight: 800; font-size: 1.2rem; color: var(--neon-blue);">₹399</div>
+                </label>
+
+                <label style="display:flex; align-items:center; padding: 1rem; border: 1px solid var(--neon-green); border-radius: 8px; cursor: pointer; background: rgba(16, 185, 129, 0.1);">
+                    <input type="radio" name="caPackage" value="2session" style="margin-right: 1rem; transform: scale(1.2);">
+                    <div style="flex:1;">
+                        <div style="font-weight: 600; font-size: 1.1rem; color: var(--neon-green);">Two Consecutive Sessions</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">In-depth review + follow-up session.</div>
+                    </div>
+                    <div style="font-weight: 800; font-size: 1.2rem; color: var(--neon-green);">₹699</div>
+                </label>
+            </div>
+
+            <div class="modal-actions" style="display:flex; flex-direction:column; gap:0.8rem;">
+                <button class="btn-primary" onclick="proceedToPayment()" style="background:var(--neon-green); color:#000; font-weight: bold; width: 100%;">Pay via Razorpay</button>
+                <button class="btn-primary" id="confirmPayBtn" onclick="finalizeBookingAndEmail()" style="display:none; background:var(--neon-blue); font-weight: bold; width: 100%;">I have completed the payment (Send Mail)</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+        window.onload = () => {
+            applySharedFontSize();
+            if (navigator.canShare) {
+                document.getElementById('shareNote').style.display = 'block';
+            }
+        };
+
+        function handleBooking(e) {
+            e.preventDefault();
+            // Show the payment modal before sending
+            document.getElementById('caPaymentModal').style.display = 'flex';
+        }
+
+        function proceedToPayment() {
+            const selectedPackage = document.querySelector('input[name="caPackage"]:checked').value;
+            
+            // NOTE TO USER: REPLACE THESE LINKS WITH YOUR ACTUAL RAZORPAY PAYMENT PAGE LINKS!
+            let razorpayLink = "";
+            if(selectedPackage === "1session") {
+                razorpayLink = "https://rzp.io/rzp/3dbijQMD"; // Real 399 link
+            } else {
+                razorpayLink = "https://rzp.io/rzp/tiRnBq9"; // Real 699 link
+            }
+            
+            // Open razorpay in a new tab
+            window.open(razorpayLink, '_blank');
+            
+            // Reveal the confirmation button
+            document.getElementById('confirmPayBtn').style.display = 'block';
+        }
+
+        async function finalizeBookingAndEmail() {
+            document.getElementById('caPaymentModal').style.display = 'none';
+
+            const name = document.getElementById('caName').value;
+            const email = document.getElementById('caEmail').value;
+            const phone = document.getElementById('caPhone').value;
+            const helpText = document.getElementById('caHelp').value;
+            const selectedPackage = document.querySelector('input[name="caPackage"]:checked').value;
+            const pkgName = selectedPackage === "1session" ? "One-Time Session (₹399)" : "Two Consecutive Sessions (₹699)";
+            
+            const fileInput = document.getElementById('caFile');
+            const file = fileInput.files[0];
+            
+            const subject = "CA Appointment Request (" + pkgName + "): " + name;
+            const body = "Hello,\n\nI have completed the payment and would like to book my CA consultation.\n\nPackage: " + pkgName + "\nName: " + name + "\nEmail: " + email + "\nPhone: " + phone + "\n\nMy Request:\n" + helpText;
+            
+            if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: subject,
+                        text: body + "\n\n(See attached financial data sheet)"
+                    });
+                    return; 
+                } catch (err) {
+                    console.log("Share API failed or cancelled", err);
+                }
+            }
+            
+            let mailtoUrl = "mailto:dhruv720gupta@gmail.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+            if (file) {
+                mailtoUrl += encodeURIComponent("\n\n(NOTE: I tried to upload '" + file.name + "', but my browser blocked the attachment. I will send it in a follow-up!)");
+                alert("Your email client will now open. Please manually attach your file (" + file.name + ") to the email before sending!");
+            }
+            window.location.href = mailtoUrl;
+        }
+    </script>
+</body>
+</html>

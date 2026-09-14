@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Guardian | AI Advisor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { margin: 0; height: 100vh; display: flex; flex-direction: column; background: var(--bg-dark); }
+        .chat-header {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--panel-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-header h1 { margin: 0; font-size: 1.2rem; color: var(--neon-blue); display: flex; align-items: center; gap: 0.5rem; }
+        .chat-container { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+        
+        .message { max-width: 85%; padding: 1rem; border-radius: 12px; line-height: 1.5; font-size: 1.15rem; }
+        .message.ai {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            align-self: flex-start;
+            color: #e0f2fe;
+            border-bottom-left-radius: 2px;
+        }
+        .message.user {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            align-self: flex-end;
+            color: #fff;
+            border-bottom-right-radius: 2px;
+        }
+        .message h3 { margin-top: 0; color: var(--neon-blue); font-size: 1.25rem; }
+        .message ul { padding-left: 1.2rem; margin: 0.5rem 0; }
+        .message li { margin-bottom: 0.5rem; }
+
+        .thinking-box {
+            background: rgba(0,0,0,0.3);
+            border: 1px dashed rgba(255,255,255,0.2);
+            padding: 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--text-muted);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .input-area {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid var(--panel-border);
+            display: flex;
+            gap: 0.5rem;
+        }
+        .input-area input {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--panel-border);
+            padding: 0.8rem 1rem;
+            border-radius: 20px;
+            color: #fff;
+            font-family: inherit;
+        }
+        .input-area input:focus { outline: none; border-color: var(--neon-blue); }
+        .disclaimer { text-align: center; font-size: 0.7rem; color: var(--text-muted); padding: 0.5rem; }
+    </style>
+</head>
+<body>
+
+    <div class="chat-header">
+        <h1><a href="index.html" style="text-decoration: none; color: var(--text-muted); margin-right: 0.5rem;">←</a> 🤖 AI Financial Advisor</h1>
+        <div style="display: flex; gap: 0.5rem;">
+            <button onclick="openApiKeyModal()" class="btn-icon" style="background: rgba(255,255,255,0.1); font-size: 0.85rem;" title="API Key Settings">⚙️</button>
+            <button onclick="startNewChat()" class="btn-icon" style="background: rgba(255,255,255,0.1); font-size: 0.85rem;">+ New Chat</button>
+        </div>
+    </div>
+
+    <div class="chat-container" id="chatBox">
+        <!-- Messages injected here -->
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="chatInput" placeholder="Ask about your finances..." onkeypress="handleEnter(event)">
+        <button onclick="sendMessage()" class="btn-primary" style="background: var(--neon-blue); padding: 0.8rem 1.5rem; border-radius: 20px; width: auto; flex: 0 0 auto;">Send</button>
+    </div>
+    <div class="disclaimer">This AI provides business guidance based on data, not certified professional financial advice.</div>
+
+    <!-- API Key Modal -->
+    <div id="apiKeyModal" class="overlay" style="display:none; z-index: 3000;">
+        <div class="modal glass-panel" style="max-width:450px; position:relative;">
+            <button class="modal-close" onclick="document.getElementById('apiKeyModal').style.display='none'">&#215;</button>
+            <h2 style="color:var(--neon-blue); margin-bottom:1rem;">Gemini AI Setup</h2>
+            <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1rem;">To use the real AI, enter your free Google Gemini API Key. Your key is stored securely in your browser and never sent anywhere else.</p>
+            <input type="text" id="geminiApiKeyInput" placeholder="AIzaSy..." style="width:100%; padding:0.8rem; border-radius:6px; border:1px solid var(--panel-border); background:rgba(0,0,0,0.3); color:#fff; margin-bottom:1rem;">
+            <div class="modal-actions" style="display:flex; flex-direction:column; gap:0.5rem;">
+                <div style="display:flex; gap:1rem; width: 100%;">
+                    <button class="btn-primary" onclick="saveApiKey()" style="background:var(--neon-blue); flex:1;">Save Key</button>
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" style="flex:1; text-align:center; padding:0.8rem; background:rgba(255,255,255,0.1); border-radius:6px; color:#fff; text-decoration:none; font-weight:600; font-size: 0.9rem;">Get Free Key</a>
+                </div>
+                <button onclick="removeApiKey()" style="width:100%; padding: 0.8rem; border-radius: 6px; font-weight: 600; background: transparent; border: 1px solid var(--neon-red); color: var(--neon-red); cursor: pointer; transition: 0.2s;">Remove API Key</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+        const chatBox = document.getElementById('chatBox');
+        const input = document.getElementById('chatInput');
+        let chatHistory = JSON.parse(localStorage.getItem('fg_ai_chat_real')) || [];
+        
+        function getApiKey() {
+            return localStorage.getItem('fg_gemini_key') || '';
+        }
+
+        function openApiKeyModal() {
+            document.getElementById('geminiApiKeyInput').value = getApiKey();
+            document.getElementById('apiKeyModal').style.display = 'flex';
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('geminiApiKeyInput').value.trim();
+            if(key) {
+                localStorage.setItem('fg_gemini_key', key);
+                document.getElementById('apiKeyModal').style.display = 'none';
+                if(chatHistory.length === 0) initiateAnalysis();
+            } else {
+                alert("Please enter a valid API key.");
+            }
+        }
+
+        function removeApiKey() {
+            if(confirm("Are you sure you want to remove your API Key? You will need to enter it again to use the AI.")) {
+                localStorage.removeItem('fg_gemini_key');
+                document.getElementById('geminiApiKeyInput').value = '';
+                document.getElementById('apiKeyModal').style.display = 'none';
+            }
+        }
+
+        function renderChat() {
+            chatBox.innerHTML = '';
+            if (!getApiKey()) {
+                appendMessageUI('ai', "Hello! I am your AI Financial Advisor. To activate my intelligence, please click the ⚙️ icon in the top right to enter your Google Gemini API Key.");
+            } else if (chatHistory.length === 0) {
+                initiateAnalysis();
+            } else {
+                chatHistory.forEach(msg => appendMessageUI(msg.role, msg.content));
+                scrollToBottom();
+            }
+        }
+
+        function appendMessageUI(role, content) {
+            const div = document.createElement('div');
+            div.className = 'message ' + role;
+            // Basic markdown bold replacement for formatting
+            div.innerHTML = content.replace(/\*\*(.*?)\*\*/g, '<strong></strong>').replace(/\n/g, '<br>');
+            chatBox.appendChild(div);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function saveChat() {
+            localStorage.setItem('fg_ai_chat_real', JSON.stringify(chatHistory));
+        }
+
+        function startNewChat() {
+            if (confirm("Clear current conversation and start fresh?")) {
+                chatHistory = [];
+                saveChat();
+                renderChat();
+            }
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        function getFinancialContext() {
+            const transactions = JSON.parse(localStorage.getItem('fg_transactions')) || [];
+            if(transactions.length === 0) return "The user has no recorded transactions yet.";
+            
+            let totalRev = 0, totalExp = 0;
+            transactions.forEach(t => {
+                if (t.type === 'revenue' || (t.type === 'pending' && t.status === 'received')) totalRev += t.amount;
+                if (t.type === 'expense' || (t.type === 'futurepay' && t.status === 'paid')) totalExp += t.amount;
+            });
+            const net = totalRev - totalExp;
+            return "Current Financial Status: Total Revenue = ₹" + totalRev + ", Total Expenses = ₹" + totalExp + ", Net Balance = ₹" + net + ".";
+        }
+
+        async function fetchGeminiResponse(userPrompt, showThinking = true) {
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                openApiKeyModal();
+                return;
+            }
+
+            let thinkingId = 'think-' + Date.now();
+            if (showThinking) {
+                const thinkDiv = document.createElement('div');
+                thinkDiv.id = thinkingId;
+                thinkDiv.className = 'thinking-box';
+                thinkDiv.innerHTML = '<div class="spinner"></div> <span>AI is analyzing data and thinking...</span>';
+                chatBox.appendChild(thinkDiv);
+                scrollToBottom();
+            }
+
+            const context = getFinancialContext();
+            
+            // Build conversation history for Gemini API
+            let contents = [
+                {
+                    "role": "user",
+                    "parts": [{"text": "You are a professional AI Financial Advisor for the 'Financial Guardian' app. You provide short, strategic, and practical business advice. Format with bullet points where necessary. Here is my data context: " + context}]
+                },
+                {
+                    "role": "model",
+                    "parts": [{"text": "Understood. I will act as a professional financial advisor and use your financial data to provide strategic, concise advice."}]
+                }
+            ];
+
+            // Add previous history
+            chatHistory.forEach(msg => {
+                contents.push({
+                    "role": msg.role === 'ai' ? 'model' : 'user',
+                    "parts": [{"text": msg.rawContent || msg.content}]
+                });
+            });
+
+            // Add current prompt if it exists (for new messages)
+            if (userPrompt) {
+                contents.push({
+                    "role": "user",
+                    "parts": [{"text": userPrompt}]
+                });
+            }
+
+            try {
+                const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=' + apiKey, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: contents })
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.error?.message || "Unknown API Error");
+                }
+
+                const data = await response.json();
+                const aiText = data.candidates[0].content.parts[0].text;
+
+                if (showThinking) document.getElementById(thinkingId).remove();
+                
+                chatHistory.push({ role: 'ai', content: aiText, rawContent: aiText });
+                appendMessageUI('ai', aiText);
+                saveChat();
+
+            } catch (err) {
+                console.error("Gemini API Error:", err);
+                if (showThinking) document.getElementById(thinkingId).remove();
+                
+                let errMsg = `⚠️ Error connecting to Gemini AI: <strong>${err.message}</strong>.`;
+                
+                // Diagnostic: Fetch available models
+                try {
+                    const modelRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models?key=' + apiKey);
+                    const modelData = await modelRes.json();
+                    if(modelData.models) {
+                        const available = modelData.models.map(m => m.name.replace('models/','')).join(', ');
+                        errMsg += `<br><br><em>Diagnostic Info: Your API key only has access to these models: <strong>${available}</strong></em>`;
+                    }
+                } catch(e) { }
+
+                appendMessageUI('ai', errMsg);
+            }
+        }
+
+        function sendMessage() {
+            const text = input.value.trim();
+            if (!text || !getApiKey()) {
+                if(!getApiKey()) openApiKeyModal();
+                return;
+            }
+            
+            chatHistory.push({ role: 'user', content: text, rawContent: text });
+            appendMessageUI('user', text);
+            input.value = '';
+            saveChat();
+
+            fetchGeminiResponse(null, true);
+        }
+
+        function initiateAnalysis() {
+            fetchGeminiResponse("Hello! Please analyze my current financial status and give me a brief assessment of whether I am in profit or loss, and suggest 2 immediate actionable steps I can take to improve my business health.", true);
+        }
+
+        window.onload = () => {
+            applySharedFontSize();
+            renderChat();
+        };
+    </script>
+</body>
+</html>

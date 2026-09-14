@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Guardian | AI Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .chat-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+        }
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--panel-border);
+            margin-bottom: 1rem;
+        }
+        .chat-header h1 {
+            font-size: 1.5rem;
+            color: var(--neon-blue);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding-right: 0.5rem;
+        }
+        .chat-message {
+            max-width: 80%;
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        .message-ai {
+            align-self: flex-start;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: var(--text-main);
+            border-bottom-left-radius: 2px;
+        }
+        .message-user {
+            align-self: flex-end;
+            background: var(--neon-blue);
+            color: #fff;
+            border-bottom-right-radius: 2px;
+        }
+        .chat-input-area {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--panel-border);
+        }
+        .chat-input {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--panel-border);
+            color: #fff;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .chat-input:focus {
+            border-color: var(--neon-blue);
+        }
+        .btn-send {
+            background: var(--neon-blue);
+            color: #fff;
+            border: none;
+            padding: 0 1.2rem;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+        }
+        .disclaimer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container glass-panel">
+        <div class="chat-header">
+            <h1>🤖 AI Financial Advisor</h1>
+            <a href="index.html" class="btn-icon" style="text-decoration: none; padding: 0.4rem 0.8rem; background: rgba(255,255,255,0.1); border-radius: 6px;">✕ Close</a>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-message message-ai">
+                Hello! I am your AI Financial Advisor. How can I assist you with your business finances today?
+            </div>
+        </div>
+        
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" class="chat-input" placeholder="Type your financial question here..." onkeypress="handleKeyPress(event)">
+            <button class="btn-send" onclick="sendMessage()">Send</button>
+        </div>
+        <div class="disclaimer">
+            Disclaimer: This is general guidance, not professional financial advice.
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            const messagesContainer = document.getElementById('chatMessages');
+            
+            // Add user message
+            const userDiv = document.createElement('div');
+            userDiv.className = 'chat-message message-user';
+            userDiv.textContent = message;
+            messagesContainer.appendChild(userDiv);
+            
+            input.value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Simulate AI typing and response
+            setTimeout(() => {
+                const aiDiv = document.createElement('div');
+                aiDiv.className = 'chat-message message-ai';
+                aiDiv.textContent = "I'm a demo AI. In a full version, I would analyze your ledger and provide specific financial advice on: " + message;
+                messagesContainer.appendChild(aiDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 800);
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>
